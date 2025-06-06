@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard Arena – Modules</title>
+  <title>Dashboard Arena – Modules, Notes & Fichiers</title>
   <link href="https://fonts.googleapis.com/css?family=Inter:400,700,800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -28,7 +28,7 @@
       margin: 0;
     }
     main {
-      max-width: 1000px;
+      max-width: 1050px;
       margin: 42px auto 0 auto;
       padding: 0 14px;
       display: flex;
@@ -77,7 +77,7 @@
       letter-spacing: .08em;
       display: block;
     }
-    input[type="text"], input[type="date"] {
+    input[type="text"], input[type="date"], textarea {
       width: 100%;
       background: #f7fafd;
       border: 1.5px solid #d2e8fd;
@@ -89,19 +89,145 @@
       margin-top: 0.10rem;
       transition: border .18s, box-shadow .2s;
       box-shadow: 0 1px 2px rgba(0,113,227,0.03);
+      resize: vertical;
       outline: none;
     }
-    input:focus {
+    input:focus, textarea:focus {
       border-color: #0071e3;
       box-shadow: 0 0 0 2px #b3d9fa;
     }
+    .note-entry {
+      display: flex;
+      gap: 10px;
+      margin: 1.1rem 0 0.4rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .note-block {
+      background: #f3f9fd;
+      padding: 0.77rem 1.1rem 0.77rem 1.15rem;
+      margin: 0.7rem 0;
+      border-radius: 13px;
+      border-left: 6px solid #0071e3;
+      position: relative;
+      box-shadow: 0 3px 18px rgba(0,113,227,0.07);
+      transition: box-shadow .2s, background .2s;
+      animation: noteAppear 0.4s;
+    }
+    @keyframes noteAppear {
+      from { opacity: 0; transform: translateY(10px);}
+      to   { opacity: 1; transform: none;}
+    }
+    .note-block .meta {
+      font-size: 0.97em;
+      color: #558;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    .note-block .status, .note-block .delete-note {
+      position: absolute;
+      top: 10px;
+      border-radius: 8px;
+      font-size: 0.94em;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      padding: 4px 14px;
+      transition: background .2s, color .2s;
+    }
+    .note-block .status {
+      right: 108px;
+    }
+    .note-block .delete-note {
+      right: 18px;
+      background: #ee5353;
+      color: #fff;
+      font-size: 0.93em;
+    }
+    .note-block[data-status="todo"] .status { background: #ffe6a4; color: #9a7700; }
+    .note-block[data-status="progress"] .status { background: #d0e6ff; color: #1769c1; }
+    .note-block[data-status="done"] .status { background: #bbf7c2; color: #107c41; }
+    .filter-line {
+      margin-top: 0.7rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: center;
+    }
+    .filter-line button {
+      background: #f3f6fa;
+      color: #0071e3;
+      font-size: 1em;
+      padding: 7px 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background .15s, color .13s;
+      margin-bottom: 0.18em;
+    }
+    .filter-line button.active { background: #0071e3; color: #fff; }
     .flash {
       box-shadow: 0 0 0 3px #ffe561 !important;
       transition: box-shadow 0.6s;
     }
+    .file-upload-block {
+      margin: 1.2em 0 1.1em 0;
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 1em 1.1em;
+      border: 1px solid #e4ecfa;
+    }
+    .file-list {
+      margin: 0.5em 0 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .file-list li {
+      margin-bottom: 0.7em;
+      background: #eef5fb;
+      border-radius: 7px;
+      padding: 7px 13px 7px 13px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.01em;
+    }
+    .file-list .file-delete {
+      margin-left: auto;
+      background: #ee5353;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 3px 12px;
+      cursor: pointer;
+      font-size: 0.97em;
+      font-weight: 600;
+    }
+    .file-list img {
+      max-height: 48px;
+      border-radius: 6px;
+      margin-right: 10px;
+      max-width: 64px;
+      box-shadow: 0 2px 6px #0001;
+    }
+    .file-list .pdf-icon {
+      width: 36px; height: 36px;
+      background: url('https://img.icons8.com/color/48/000000/pdf-2.png') no-repeat center center/contain;
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .file-list a {
+      text-decoration: underline;
+      color: #185ad0;
+      font-weight: 500;
+      word-break: break-all;
+      font-size: 1em;
+    }
     @media (max-width: 680px) {
       main { padding: 0 2px; }
       details { padding: 0.5rem 0.2rem; }
+      .note-block { padding: 0.7rem 0.7rem 0.7rem 0.9rem; }
       header h1 { font-size: 1.3em; }
     }
     footer { text-align: center; color: #aaa; padding: 36px 0 18px 0; font-size: 1rem; margin-top: 60px; }
@@ -109,7 +235,7 @@
 </head>
 <body>
   <header>
-    <h1>🎬 Dashboard Arena – Modules</h1>
+    <h1>🎬 Dashboard Arena – Modules & Notes & Fichiers</h1>
   </header>
   <main>
     <div id="container"></div>
@@ -118,14 +244,13 @@
   <footer>
     © 2025 Dashboard Arena
   </footer>
-
   <script>
     // ---- SUPABASE SETUP ----
-    const SUPABASE_URL = 'https://agrpuquffudxgrgdiqxi.supabase.co';
+    const SUPABASE_URL = 'https://agrpuquffudxgrgdiqxi.supabase.co'; // à adapter si besoin
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFncnB1cXVmZnVkeGdyZ2RpcXhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMjM5NzEsImV4cCI6MjA2NDc5OTk3MX0.aG_ko5Tpyu9QTxMD0e7Mr9HZZex1NvX4WueDu7YtLfs';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // --- Liste de modules ---
+    // --- Liste des modules ---
     const modules = [
       "Convois",
       "Portraits écrans",
@@ -145,27 +270,48 @@
       await supabase.from('modules').upsert(rows);
     }
 
-    // --- Diagnostic : affiche la table modules dans la console et à l'écran ---
-    async function showModulesDiagnostic() {
-      const { data, error } = await supabase.from('modules').select('*').order('id');
-      console.log("[Diagnostic modules]", data);
-      let html = "<b>Contenu réel de la table <code>modules</code> :</b><br><br>";
-      if (error) { html += "<span style='color:red'>Erreur de lecture Supabase</span>"; }
-      else if (!data || data.length === 0) html += "<i>Aucune ligne trouvée.</i>";
-      else {
-        html += "<table style='border-collapse:collapse;'><thead><tr>";
-        html += "<th style='border-bottom:1px solid #ccc;'>id</th><th style='border-bottom:1px solid #ccc;'>chef</th><th style='border-bottom:1px solid #ccc;'>lieu</th><th style='border-bottom:1px solid #ccc;'>date</th><th style='border-bottom:1px solid #ccc;'>horaires</th></tr></thead><tbody>";
-        data.forEach(row => {
-          html += `<tr>
-            <td style="border-bottom:1px solid #eee;">${row.id}</td>
-            <td style="border-bottom:1px solid #eee;">${row.chef||""}</td>
-            <td style="border-bottom:1px solid #eee;">${row.lieu||""}</td>
-            <td style="border-bottom:1px solid #eee;">${row.date||""}</td>
-            <td style="border-bottom:1px solid #eee;">${row.horaires||""}</td>
-          </tr>`;
-        });
+    // --- Diagnostic : affiche la table modules, notes, fichiers ---
+    async function showDiagnostic() {
+      let html = `<b>Table <code>modules</code> :</b><br>`;
+      let { data: mods } = await supabase.from('modules').select('*').order('id');
+      if (mods && mods.length) {
+        html += "<table style='border-collapse:collapse;'><thead><tr><th>id</th><th>chef</th><th>lieu</th><th>date</th><th>horaires</th></tr></thead><tbody>";
+        mods.forEach(row => html += `<tr>
+          <td style="border-bottom:1px solid #eee;">${row.id}</td>
+          <td style="border-bottom:1px solid #eee;">${row.chef||""}</td>
+          <td style="border-bottom:1px solid #eee;">${row.lieu||""}</td>
+          <td style="border-bottom:1px solid #eee;">${row.date||""}</td>
+          <td style="border-bottom:1px solid #eee;">${row.horaires||""}</td>
+        </tr>`);
         html += "</tbody></table>";
-      }
+      } else html += "<i>Aucune ligne</i>";
+
+      html += `<br><b>Table <code>notes</code> :</b><br>`;
+      let { data: notes } = await supabase.from('notes').select('*').order('created_at');
+      if (notes && notes.length) {
+        html += "<table style='border-collapse:collapse;'><thead><tr><th>module_id</th><th>author</th><th>content</th><th>status</th></tr></thead><tbody>";
+        notes.forEach(row => html += `<tr>
+          <td style="border-bottom:1px solid #eee;">${row.module_id}</td>
+          <td style="border-bottom:1px solid #eee;">${row.author||""}</td>
+          <td style="border-bottom:1px solid #eee;">${row.content||""}</td>
+          <td style="border-bottom:1px solid #eee;">${row.status||""}</td>
+        </tr>`);
+        html += "</tbody></table>";
+      } else html += "<i>Aucune note</i>";
+
+      html += `<br><b>Table <code>module_files</code> :</b><br>`;
+      let { data: files } = await supabase.from('module_files').select('*').order('uploaded_at');
+      if (files && files.length) {
+        html += "<table style='border-collapse:collapse;'><thead><tr><th>module_id</th><th>filename</th><th>url</th><th>mimetype</th></tr></thead><tbody>";
+        files.forEach(row => html += `<tr>
+          <td style="border-bottom:1px solid #eee;">${row.module_id}</td>
+          <td style="border-bottom:1px solid #eee;">${row.filename}</td>
+          <td style="border-bottom:1px solid #eee;"><a href="${row.url}" target="_blank">${row.url}</a></td>
+          <td style="border-bottom:1px solid #eee;">${row.mimetype||""}</td>
+        </tr>`);
+        html += "</tbody></table>";
+      } else html += "<i>Aucun fichier</i>";
+
       document.getElementById("diagnostic").innerHTML = html;
     }
 
@@ -189,17 +335,150 @@
 
   <label>🕒 Tranches horaires (libre)</label>
   <input type="text" id="${id}_horaires" placeholder="Ex : 08h30-10h, 14h-16h" autocomplete="off" />
+
+  <hr style="margin:1em 0">
+
+  <label>📝 Ajouter une note</label>
+  <div class="note-entry">
+    <input type="text" id="${id}_author" placeholder="Auteur">
+    <input type="text" id="${id}_text" placeholder="Texte de la note">
+    <button type="button" data-action="add-note" data-id="${id}">Ajouter</button>
+  </div>
+
+  <div class="filter-line" data-id="${id}">
+    <span>Filtrer :</span>
+    <button type="button" data-filter="all" class="active">Tous</button>
+    <button type="button" data-filter="todo">À traiter</button>
+    <button type="button" data-filter="progress">En cours</button>
+    <button type="button" data-filter="done">Traité</button>
+  </div>
+  <div id="${id}_notes"></div>
+
+  <hr style="margin:1.1em 0 0.5em 0;">
+  <div class="file-upload-block">
+    <label>📎 Fichiers (multi-upload, images/PDF/vidéos/autres)</label>
+    <input type="file" id="${id}_file" multiple>
+    <ul class="file-list" id="${id}_filelist"></ul>
+  </div>
 </details>`;
       });
       c.innerHTML = html;
       modules.forEach((_, i) => {
         const id = "mod" + i;
+        loadNotes(id);
         loadModule(id);
         setupSyncFields(id);
+        loadFiles(id);
+      });
+      c.addEventListener("click", onContainerClick);
+      c.addEventListener("keydown", onNoteEntryKeydown);
+      c.addEventListener("change", onFileUpload);
+    }
+
+    // --- GESTION NOTES ---
+    let currentFilters = {};
+    function getStatusLabel(status) {
+      return status === "todo" ? "À traiter" : status === "progress" ? "En cours" : "Traité";
+    }
+    function getNextStatus(status) {
+      return status === "todo" ? "progress" : status === "progress" ? "done" : "todo";
+    }
+    async function onContainerClick(e) {
+      const t = e.target;
+      if (t.dataset.action === "add-note") {
+        const id = t.dataset.id;
+        await addNote(id);
+      }
+      if (t.classList.contains("status")) {
+        const block = t.closest(".note-block");
+        const noteId = block.querySelector(".delete-note").dataset.noteid;
+        const moduleId = block.closest("details").id;
+        const curStatus = block.dataset.status;
+        const nextStatus = getNextStatus(curStatus);
+        await supabase.from('notes').update({ status: nextStatus }).eq('id', noteId);
+        loadNotes(moduleId);
+      }
+      if (t.classList.contains("delete-note")) {
+        const noteId = t.dataset.noteid;
+        const moduleId = t.closest("details").id;
+        await deleteNote(noteId, moduleId);
+      }
+      if (t.matches(".filter-line button")) {
+        const line = t.closest(".filter-line");
+        filter(line.dataset.id, t.dataset.filter);
+      }
+      if (t.classList.contains("file-delete")) {
+        const li = t.closest("li");
+        const fileId = li.dataset.fileid;
+        const moduleId = li.closest("details").id;
+        await deleteFile(fileId, moduleId);
+      }
+    }
+    function onNoteEntryKeydown(e) {
+      if (e.key === "Enter" && e.target.matches("input[id$='_text']")) {
+        const id = e.target.id.replace("_text", "");
+        addNote(id);
+      }
+    }
+    async function addNote(id) {
+      const nameEl = document.getElementById(id + "_author");
+      const textEl = document.getElementById(id + "_text");
+      const name = nameEl.value.trim();
+      const text = textEl.value.trim();
+      if (!text) return;
+      await supabase.from('notes').insert([
+        {
+          module_id: id,
+          author: name,
+          content: text,
+          status: 'todo'
+        }
+      ]);
+      nameEl.value = "";
+      textEl.value = "";
+      loadNotes(id);
+    }
+    async function deleteNote(noteId, moduleId) {
+      await supabase.from('notes').delete().eq('id', noteId);
+      loadNotes(moduleId);
+    }
+    async function loadNotes(id) {
+      const { data, error } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('module_id', id)
+        .order('created_at', { ascending: true });
+      const area = document.getElementById(id + "_notes");
+      area.innerHTML = "";
+      if (error) {
+        area.innerHTML = "<div style='color:red'>Erreur de chargement</div>";
+        return;
+      }
+      data.forEach(n => {
+        const div = document.createElement("div");
+        div.className = "note-block";
+        div.dataset.status = n.status;
+        div.innerHTML = `
+          <div class="meta">${n.author || "Anonyme"}</div>
+          <div>${n.content}</div>
+          <button type="button" class="status">${getStatusLabel(n.status)}</button>
+          <button type="button" class="delete-note" data-noteid="${n.id}">Supprimer</button>
+        `;
+        area.appendChild(div);
+      });
+      filter(id, currentFilters[id] || "all");
+    }
+    function filter(id, stat) {
+      currentFilters[id] = stat;
+      const buttons = document.querySelectorAll("#" + id + " .filter-line button");
+      buttons.forEach(b => b.classList.remove("active"));
+      document.querySelector(`#${id} .filter-line button[data-filter="${stat}"]`).classList.add("active");
+      document.querySelectorAll("#" + id + " .note-block").forEach(n => {
+        n.style.display = (stat === "all" || n.dataset.status === stat) ? "block" : "none";
       });
     }
 
-    // --- Synchro champs module ---
+    // --- CHAMPS MODULE ---
     async function loadModule(id) {
       const { data } = await supabase.from('modules').select('*').eq('id', id).maybeSingle();
       if (!data) return;
@@ -228,14 +507,89 @@
       await supabase.from('modules').upsert([
         { id, chef, lieu, date: (date || null), horaires, updated_at: new Date().toISOString() }
       ]);
-      showModulesDiagnostic(); // met à jour le diagnostic live
+      showDiagnostic();
     }
 
-    // --- INIT : tout initialiser ---
+    // --- UPLOAD MULTI-FICHIERS ---
+    async function onFileUpload(e) {
+      const t = e.target;
+      if (!t.matches("input[type='file']")) return;
+      const id = t.id.replace("_file", "");
+      const files = t.files;
+      if (!files.length) return;
+      for (let file of files) {
+        // Upload sur Storage
+        const filename = `${id}/${Date.now()}_${encodeURIComponent(file.name)}`;
+        let { data, error } = await supabase.storage.from('module_files').upload(filename, file, { upsert: false });
+        if (error && !/already exists/i.test(error.message)) {
+          alert("Erreur d'upload: " + error.message);
+          continue;
+        }
+        // Récupération URL publique
+        const { data: urlData } = supabase.storage.from('module_files').getPublicUrl(filename);
+        const url = urlData.publicUrl;
+        // Enregistrement en base
+        await supabase.from('module_files').insert([
+          {
+            module_id: id,
+            filename: file.name,
+            url,
+            mimetype: file.type
+          }
+        ]);
+      }
+      t.value = ""; // reset input
+      loadFiles(id);
+      showDiagnostic();
+    }
+    async function loadFiles(id) {
+      const { data, error } = await supabase
+        .from('module_files')
+        .select('*')
+        .eq('module_id', id)
+        .order('uploaded_at', { ascending: true });
+      const list = document.getElementById(id + "_filelist");
+      list.innerHTML = "";
+      if (error) return;
+      data.forEach(f => {
+        const li = document.createElement("li");
+        li.dataset.fileid = f.id;
+        // Aperçu images
+        if (f.mimetype && f.mimetype.startsWith("image/")) {
+          li.innerHTML = `<img src="${f.url}" alt="img"> <a href="${f.url}" target="_blank">${f.filename}</a>
+          <button class="file-delete">Supprimer</button>`;
+        }
+        // Aperçu PDF
+        else if (f.mimetype === "application/pdf") {
+          li.innerHTML = `<span class="pdf-icon"></span> <a href="${f.url}" target="_blank">${f.filename}</a>
+          <button class="file-delete">Supprimer</button>`;
+        }
+        // Autres types
+        else {
+          li.innerHTML = `<a href="${f.url}" target="_blank">${f.filename}</a>
+          <button class="file-delete">Supprimer</button>`;
+        }
+        list.appendChild(li);
+      });
+    }
+    async function deleteFile(fileId, moduleId) {
+      // Récupère l'entrée
+      const { data, error } = await supabase.from('module_files').select('*').eq('id', fileId).maybeSingle();
+      if (!data) return;
+      // Supprime du Storage
+      const path = data.url.split('/module_files/')[1];
+      await supabase.storage.from('module_files').remove([path]);
+      // Supprime de la table
+      await supabase.from('module_files').delete().eq('id', fileId);
+      loadFiles(moduleId);
+      showDiagnostic();
+    }
+
+    // --- INIT ---
     (async function() {
       await ensureAllModulesExist();
       renderModules();
-      showModulesDiagnostic();
+      showDiagnostic();
     })();
   </script>
 </body>
