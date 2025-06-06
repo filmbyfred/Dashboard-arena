@@ -66,6 +66,7 @@
       border-bottom: 1px solid #e8eef7;
       outline: none;
       letter-spacing: .04em;
+      text-transform: uppercase;
     }
     summary:focus, summary:hover {
       background: #d6e8fa;
@@ -284,25 +285,23 @@
 
     // --- Liste des modules ---
     const modules = [
-      "Convois",
-      "Portraits écrans",
-      "Portraits beauties lifestyle",
-      "Sac de frappe",
-      "Traîneaux",
-      "Vélos",
-      "Combat piscine",
-      "Lutte des territoires",
-      "Bains glacés",
-      "Combats éliminatoires"
+      "CONVOIS",
+      "PORTRAITS ÉCRANS",
+      "PORTRAITS BEAUTIES LIFESTYLE",
+      "SAC DE FRAPPE",
+      "TRAÎNEAUX",
+      "VÉLOS",
+      "COMBAT PISCINE",
+      "LUTTE DES TERRITOIRES",
+      "BAINS GLACÉS",
+      "COMBATS ÉLIMINATOIRES"
     ];
 
-    // --- Initialisation automatique des lignes modules ---
     async function ensureAllModulesExist() {
       const rows = modules.map((mod, i) => ({ id: "mod"+i }));
       await supabase.from('modules').upsert(rows);
     }
 
-    // --- Diagnostic : affiche la table modules, notes, fichiers ---
     async function showDiagnostic() {
       let html = `<b>Table <code>modules</code> :</b><br>`;
       let { data: mods } = await supabase.from('modules').select('*').order('id');
@@ -347,7 +346,6 @@
       document.getElementById("diagnostic").innerHTML = html;
     }
 
-    // --- Diagnostic toggle
     function toggleDiagnostic() {
       const diag = document.getElementById("diagnostic");
       diag.classList.toggle("visible");
@@ -359,7 +357,6 @@
       }
     }
 
-    // --- Rendu des modules accordéon ---
     function renderModules() {
       const c = document.getElementById("container");
       let html = "";
@@ -419,7 +416,6 @@
       c.addEventListener("change", onFileUpload);
     }
 
-    // --- GESTION NOTES ---
     let currentFilters = {};
     function getStatusLabel(status) {
       return status === "todo" ? "À traiter" : status === "progress" ? "En cours" : "Traité";
@@ -522,7 +518,6 @@
       });
     }
 
-    // --- CHAMPS MODULE ---
     async function loadModule(id) {
       const { data } = await supabase.from('modules').select('*').eq('id', id).maybeSingle();
       if (!data) return;
@@ -554,7 +549,12 @@
       if (document.getElementById("diagnostic").classList.contains("visible")) showDiagnostic();
     }
 
-    // --- UPLOAD MULTI-FICHIERS ---
+    // --- UPLOAD MULTI-FICHIERS (corrigé : noms safe) ---
+    function sanitizeFilename(name) {
+      return name.normalize('NFD')
+                 .replace(/[\u0300-\u036f]/g, '')
+                 .replace(/[^a-zA-Z0-9._-]/g, '_');
+    }
     async function onFileUpload(e) {
       const t = e.target;
       if (!t.matches("input[type='file']")) return;
@@ -562,21 +562,19 @@
       const files = t.files;
       if (!files.length) return;
       for (let file of files) {
-        // Upload sur Storage
-        const filename = `${id}/${Date.now()}_${encodeURIComponent(file.name)}`;
+        const cleanName = sanitizeFilename(file.name);
+        const filename = `${id}/${Date.now()}_${cleanName}`;
         let { data, error } = await supabase.storage.from('module-files').upload(filename, file, { upsert: false });
         if (error && !/already exists/i.test(error.message)) {
           alert("Erreur d'upload: " + error.message);
           continue;
         }
-        // Récupération URL publique
         const { data: urlData } = supabase.storage.from('module-files').getPublicUrl(filename);
         const url = urlData.publicUrl;
-        // Enregistrement en base
         await supabase.from('module_files').insert([
           {
             module_id: id,
-            filename: file.name,
+            filename: file.name, // On garde le nom d'origine pour l'affichage
             url,
             mimetype: file.type
           }
@@ -598,17 +596,14 @@
       data.forEach(f => {
         const li = document.createElement("li");
         li.dataset.fileid = f.id;
-        // Aperçu images
         if (f.mimetype && f.mimetype.startsWith("image/")) {
           li.innerHTML = `<img src="${f.url}" alt="img"> <a href="${f.url}" target="_blank">${f.filename}</a>
           <button class="file-delete">Supprimer</button>`;
         }
-        // Aperçu PDF
         else if (f.mimetype === "application/pdf") {
           li.innerHTML = `<span class="pdf-icon"></span> <a href="${f.url}" target="_blank">${f.filename}</a>
           <button class="file-delete">Supprimer</button>`;
         }
-        // Autres types
         else {
           li.innerHTML = `<a href="${f.url}" target="_blank">${f.filename}</a>
           <button class="file-delete">Supprimer</button>`;
@@ -617,13 +612,10 @@
       });
     }
     async function deleteFile(fileId, moduleId) {
-      // Récupère l'entrée
       const { data, error } = await supabase.from('module_files').select('*').eq('id', fileId).maybeSingle();
       if (!data) return;
-      // Supprime du Storage
       const path = data.url.split('/module-files/')[1];
       await supabase.storage.from('module-files').remove([path]);
-      // Supprime de la table
       await supabase.from('module_files').delete().eq('id', fileId);
       loadFiles(moduleId);
       if (document.getElementById("diagnostic").classList.contains("visible")) showDiagnostic();
