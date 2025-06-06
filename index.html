@@ -28,5 +28,453 @@
       color: #0071e3;
     }
     main {
-      max-width: 
-
+      max-width: 900px;
+      margin: 40px auto 0 auto;
+      padding: 0 16px;
+    }
+    details {
+      background: #fff;
+      margin: 2rem 0;
+      border-radius: 30px;
+      padding: 2rem 1.5rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+      transition: box-shadow .2s;
+      border: 1px solid #f1f3f6;
+    }
+    details[open] {
+      box-shadow: 0 12px 36px rgba(0,113,227,0.11);
+    }
+    summary {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #0071e3;
+      cursor: pointer;
+      outline: none;
+      padding: .5rem 0;
+      border-radius: 15px;
+      transition: background .2s;
+    }
+    summary:hover, summary:focus {
+      background: #eaf6ff;
+    }
+    label {
+      display: block;
+      margin: 1.3rem 0 0.3rem;
+      font-weight: 600;
+      color: #555;
+      letter-spacing: .1em;
+    }
+    input[type="text"],
+    textarea {
+      width: 100%;
+      background: #f3f6fa;
+      border: 1px solid #d8e3f1;
+      color: #222;
+      padding: 0.7rem;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      box-sizing: border-box;
+      transition: border .2s;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #0071e3;
+    }
+    .note-entry {
+      display: flex;
+      gap: 10px;
+      margin: 1rem 0 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .note-entry input {
+      flex: 1;
+    }
+    .note-block {
+      background: #f3f9fd;
+      padding: 0.7rem 1rem;
+      margin: 0.5rem 0;
+      border-radius: 12px;
+      border-left: 5px solid #0071e3;
+      position: relative;
+      box-shadow: 0 2px 12px rgba(0,113,227,0.05);
+      transition: box-shadow .2s;
+    }
+    .note-block .meta {
+      font-size: 0.93em;
+      color: #888;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    .note-block .status {
+      position: absolute;
+      top: 8px;
+      right: 110px;
+      padding: 3px 14px;
+      border-radius: 7px;
+      font-size: 0.85em;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background .2s;
+      background: #f5f7fa;
+      color: #0071e3;
+    }
+    .note-block .delete-note {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: #e53e3e;
+      color: #fff;
+      border: none;
+      padding: 3px 14px;
+      border-radius: 7px;
+      font-size: 0.85em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .note-block[data-status="todo"] .status {
+      background: #ffe6a4;
+      color: #9a7700;
+    }
+    .note-block[data-status="progress"] .status {
+      background: #d0e6ff;
+      color: #1769c1;
+    }
+    .note-block[data-status="done"] .status {
+      background: #bbf7c2;
+      color: #107c41;
+    }
+    .filter-line {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      align-items: center;
+    }
+    .filter-line button {
+      background: #f3f6fa;
+      color: #0071e3;
+      font-size: 1em;
+      padding: 5px 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background .2s, color .2s;
+    }
+    .filter-line button.active {
+      background: #0071e3;
+      color: #fff;
+    }
+    .upload-block {
+      margin: 1.5rem 0 0.2rem;
+    }
+    .file-item {
+      display: flex;
+      align-items: center;
+      margin: 0.4rem 0;
+      gap: 16px;
+      padding-left: 6px;
+    }
+    .file-item a {
+      color: #0071e3;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .file-item button {
+      background: #e53e3e;
+      color: #fff;
+      padding: 3px 12px;
+      font-size: 0.9em;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+    @media (max-width:600px) {
+      main { padding: 0 2px; }
+      details { padding: 1rem 0.5rem; }
+      header h1 { font-size: 1.2em; }
+    }
+    button:focus, input:focus {
+      outline: 2px solid #0071e3;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #f1f3f6;
+      margin: 2rem 0;
+    }
+    footer {
+      text-align: center;
+      color: #aaa;
+      padding: 36px 0 18px 0;
+      font-size: 1rem;
+      margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎬 Tournage – Règles & Modules additionnels</h1>
+  </header>
+  <main>
+    <div id="container"></div>
+  </main>
+  <footer>
+    © 2025 Dashboard Arena
+  </footer>
+  <script type="module">
+    // ------ Données permanentes ------
+    const modules = [
+      "Convois",
+      "Portraits",
+      "Sac de frappe",
+      "Traîneaux",
+      "Vélos",
+      "Combat piscine",
+      "Lutte des territoires",
+      "Bains glacés",
+      "Combats éliminatoires"
+    ];
+    // Valeurs de base (écrasées par localStorage au besoin)
+    const config = {
+      0: ["Neel Poettinger", ""],
+      1: ["", ""],
+      2: ["Julien Lascar", "HANGAR HM10"],
+      3: ["Julien Lascar", "HANGAR HM10"],
+      4: ["Neel Poettinger", "HANGAR HM10"],
+      5: ["Neel Poettinger", ""],
+      6: ["Neel Poettinger", ""],
+      7: ["Julien Lascar", "HANGAR HM10"],
+      8: ["", ""]
+    };
+    const incumbents = {
+      0: ["Neel Poettinger"],
+      1: ["Ciryl (Portraits écrans)", "Ciryl & 1 combattante"],
+      2: ["Ciryl"],
+      3: ["Ciryl", "1 combattante"],
+      4: ["1 combattant", "1 combattante"],
+      5: ["2 combattants hommes"],
+      6: ["4 combattants hommes"],
+      7: ["1 combattante"],
+      8: []
+    };
+    let currentFilters = {};
+
+    function getConfig(idx) {
+      // Récupère depuis localStorage ou valeurs par défaut
+      const saved = JSON.parse(localStorage.getItem("module_config") || "{}");
+      return saved[idx] || config[idx] || ["",""];
+    }
+    function saveConfig(id) {
+      const idx = parseInt(id.replace("mod", ""));
+      const chef = document.getElementById(id + "_chef").value;
+      const lieu = document.getElementById(id + "_lieu").value;
+      let saved = JSON.parse(localStorage.getItem("module_config") || "{}");
+      saved[idx] = [chef, lieu];
+      localStorage.setItem("module_config", JSON.stringify(saved));
+    }
+    function loadConfig() {
+      let saved = JSON.parse(localStorage.getItem("module_config") || "{}");
+      Object.keys(saved).forEach(idx => {
+        if (document.getElementById("mod" + idx + "_chef"))
+          document.getElementById("mod" + idx + "_chef").value = saved[idx][0];
+        if (document.getElementById("mod" + idx + "_lieu"))
+          document.getElementById("mod" + idx + "_lieu").value = saved[idx][1];
+      });
+    }
+
+    function renderModules() {
+      const c = document.getElementById("container");
+      let html = "";
+      modules.forEach((mod, i) => {
+        const id = "mod" + i;
+        const [chef, lieu] = getConfig(i);
+        const inters = incumbents[i] || [];
+        html += `
+<details id="${id}">
+  <summary>${mod}</summary>
+  <label>🎥 Chef opérateur</label>
+  <input type="text" id="${id}_chef" value="${chef}" />
+  <label>📍 Lieu</label>
+  <input type="text" id="${id}_lieu" value="${lieu}" />
+  <label>👥 Incarnants</label>
+  <input type="text" id="${id}_incarnants" value="${inters.join(", ")}" placeholder="Liste des incarnants" />
+  <hr/>
+  <label>📝 Ajouter une note</label>
+  <div class="note-entry">
+    <input type="text" id="${id}_author" placeholder="Auteur">
+    <input type="text" id="${id}_text" placeholder="Texte de la note">
+    <button type="button" data-action="add-note" data-id="${id}">Ajouter</button>
+  </div>
+  <div class="filter-line" data-id="${id}">
+    <span>Filtrer :</span>
+    <button type="button" data-filter="all" class="active">Tous</button>
+    <button type="button" data-filter="todo">À traiter</button>
+    <button type="button" data-filter="progress">En cours</button>
+    <button type="button" data-filter="done">Traité</button>
+  </div>
+  <div id="${id}_notes"></div>
+  <div class="upload-block">
+    <label>📎 Upload fichiers (images/PDF)</label>
+    <input type="file" id="${id}_files" multiple accept="image/*,.pdf">
+    <div id="${id}_files_list"></div>
+  </div>
+</details>`;
+      });
+      c.innerHTML = html;
+      modules.forEach((_, i) => {
+        const id = "mod" + i;
+        loadNotes(id);
+        setupFileUpload(id);
+        renderFiles(id);
+      });
+      // Activation sauvegarde chef/lieu
+      modules.forEach((_, i) => {
+        const id = "mod" + i;
+        if (document.getElementById(id + "_chef"))
+          document.getElementById(id + "_chef").addEventListener("change", () => saveConfig(id));
+        if (document.getElementById(id + "_lieu"))
+          document.getElementById(id + "_lieu").addEventListener("change", () => saveConfig(id));
+      });
+      loadConfig();
+      c.addEventListener("click", onContainerClick);
+      c.addEventListener("keydown", onNoteEntryKeydown);
+    }
+
+    function onContainerClick(e) {
+      const t = e.target;
+      if (t.dataset.action === "add-note") {
+        const id = t.dataset.id;
+        addNote(id);
+      }
+      if (t.classList.contains("status")) {
+        toggleStatus(t.closest(".note-block"));
+      }
+      if (t.classList.contains("delete-note")) {
+        const block = t.closest(".note-block");
+        const parent = block.closest("details").id;
+        block.remove();
+        saveNotes(parent);
+        filter(parent, currentFilters[parent] || "all");
+      }
+      if (t.matches(".filter-line button")) {
+        const line = t.closest(".filter-line");
+        filter(line.dataset.id, t.dataset.filter);
+      }
+      if (t.classList.contains("delete-file")) {
+        deleteFile(t.dataset.id, +t.dataset.idx);
+      }
+    }
+
+    function onNoteEntryKeydown(e) {
+      if (e.key === "Enter" && e.target.matches("input[id$='_text']")) {
+        const id = e.target.id.replace("_text", "");
+        addNote(id);
+      }
+    }
+    function addNote(id) {
+      const nameEl = document.getElementById(id + "_author");
+      const textEl = document.getElementById(id + "_text");
+      const name = nameEl.value.trim();
+      const text = textEl.value.trim();
+      if (!text) return;
+      const div = document.createElement("div");
+      div.className = "note-block";
+      div.dataset.status = "todo";
+      div.innerHTML = `
+        <div class="meta">${name || "Anonyme"}</div>
+        <div>${text}</div>
+        <button type="button" class="status">À traiter</button>
+        <button type="button" class="delete-note">Supprimer</button>
+      `;
+      document.getElementById(id + "_notes").appendChild(div);
+      nameEl.value = "";
+      textEl.value = "";
+      saveNotes(id);
+      filter(id, currentFilters[id] || "all");
+    }
+    function toggleStatus(el) {
+      const states = ["todo", "progress", "done"];
+      const labels = ["À traiter", "En cours", "Traité"];
+      let cur = states.indexOf(el.dataset.status || "todo");
+      let next = (cur + 1) % 3;
+      el.dataset.status = states[next];
+      el.querySelector(".status").innerText = labels[next];
+      const id = el.closest("details").id;
+      saveNotes(id);
+      filter(id, currentFilters[id] || "all");
+    }
+    function saveNotes(id) {
+      const blocks = [...document.querySelectorAll("#" + id + "_notes .note-block")];
+      const notes = blocks.map(div => ({
+        html: div.innerHTML,
+        status: div.dataset.status
+      }));
+      localStorage.setItem(id + "_notes", JSON.stringify(notes));
+    }
+    function loadNotes(id) {
+      const data = localStorage.getItem(id + "_notes");
+      if (!data) return;
+      const area = document.getElementById(id + "_notes");
+      area.innerHTML = "";
+      JSON.parse(data).forEach(n => {
+        const div = document.createElement("div");
+        div.className = "note-block";
+        div.dataset.status = n.status;
+        div.innerHTML = n.html;
+        area.appendChild(div);
+      });
+    }
+    function filter(id, stat) {
+      currentFilters[id] = stat;
+      const buttons = document.querySelectorAll("#" + id + " .filter-line button");
+      buttons.forEach(b => b.classList.remove("active"));
+      document.querySelector(`#${id} .filter-line button[data-filter="${stat}"]`).classList.add("active");
+      document.querySelectorAll("#" + id + " .note-block").forEach(n => {
+        n.style.display = (stat === "all" || n.dataset.status === stat) ? "block" : "none";
+      });
+    }
+    function setupFileUpload(id) {
+      const input = document.getElementById(id + "_files");
+      input.addEventListener("change", function(event) {
+        const files = Array.from(event.target.files);
+        const stored = JSON.parse(localStorage.getItem(id + "_files") || "[]");
+        let left = files.length;
+        files.forEach(file => {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            stored.push({ name: file.name, type: file.type, data: e.target.result });
+            left--;
+            if (left === 0) {
+              localStorage.setItem(id + "_files", JSON.stringify(stored));
+              renderFiles(id);
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+        input.value = "";
+      });
+    }
+    function renderFiles(id) {
+      const files = JSON.parse(localStorage.getItem(id + "_files") || "[]");
+      const el = document.getElementById(id + "_files_list");
+      el.innerHTML = files.map((f, idx) =>
+        `<div class="file-item">
+          <a href="${f.data}" download="${f.name}" target="_blank">${f.name}</a>
+          <button type="button" class="delete-file" data-id="${id}" data-idx="${idx}">Supprimer</button>
+        </div>`
+      ).join("");
+    }
+    function deleteFile(id, idx) {
+      const files = JSON.parse(localStorage.getItem(id + "_files") || "[]");
+      files.splice(idx, 1);
+      localStorage.setItem(id + "_files", JSON.stringify(files));
+      renderFiles(id);
+    }
+    // Initialisation
+    renderModules();
+  </script>
+</body>
+</html>
