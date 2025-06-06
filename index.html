@@ -14,8 +14,8 @@
     summary { font-size: 1.3em; font-weight: 600; color: #0071e3; cursor: pointer; outline: none; padding: .5rem 0; border-radius: 15px; transition: background .2s; }
     summary:hover, summary:focus { background: #eaf6ff; }
     label { display: block; margin: 1.3rem 0 0.3rem; font-weight: 600; color: #555; letter-spacing: .1em; }
-    input[type="text"], input[type="date"], input[type="time"], textarea { width: 100%; background: #f3f6fa; border: 1px solid #d8e3f1; color: #222; padding: 0.7rem; font-size: 1.1rem; border-radius: 10px; box-sizing: border-box; transition: border .2s; }
-    input:focus, textarea:focus { outline: none; border-color: #0071e3; }
+    input[type="text"], input[type="date"], select, textarea { width: 100%; background: #f3f6fa; border: 1px solid #d8e3f1; color: #222; padding: 0.7rem; font-size: 1.1rem; border-radius: 10px; box-sizing: border-box; transition: border .2s; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #0071e3; }
     .note-entry { display: flex; gap: 10px; margin: 1rem 0 0.5rem; flex-wrap: wrap; align-items: center; }
     .note-entry input { flex: 1; }
     .note-block { background: #f3f9fd; padding: 0.7rem 1rem; margin: 0.5rem 0; border-radius: 12px; border-left: 5px solid #0071e3; position: relative; box-shadow: 0 2px 12px rgba(0,113,227,0.05); transition: box-shadow .2s; }
@@ -28,10 +28,6 @@
     .filter-line { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; }
     .filter-line button { background: #f3f6fa; color: #0071e3; font-size: 1em; padding: 5px 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background .2s, color .2s; }
     .filter-line button.active { background: #0071e3; color: #fff; }
-    .upload-block { margin: 1.5rem 0 0.2rem; }
-    .file-item { display: flex; align-items: center; margin: 0.4rem 0; gap: 16px; padding-left: 6px; }
-    .file-item a { color: #0071e3; text-decoration: none; font-weight: 500; }
-    .file-item button { background: #e53e3e; color: #fff; padding: 3px 12px; font-size: 0.9em; border-radius: 8px; border: none; cursor: pointer; }
     @media (max-width:600px) {
       main { padding: 0 2px; }
       details { padding: 1rem 0.5rem; }
@@ -53,7 +49,7 @@
     © 2025 Dashboard Arena
   </footer>
 
-  <script type="module">
+  <script>
     // ------ Données permanentes ------
     const modules = [
       "Convois",
@@ -68,82 +64,19 @@
       "Combats éliminatoires"
     ];
 
-    // Valeurs de base (écrasées par localStorage au besoin)
-    const config = {
-      0: ["Neel Poettinger", "", []],
-      1: ["", "", []],
-      2: ["", "", []],
-      3: ["Julien Lascar", "HANGAR HM10", []],
-      4: ["Julien Lascar", "HANGAR HM10", []],
-      5: ["Neel Poettinger", "HANGAR HM10", []],
-      6: ["Neel Poettinger", "", []],
-      7: ["Neel Poettinger", "", []],
-      8: ["Julien Lascar", "HANGAR HM10", []],
-      9: ["", "", []]
-    };
-
-    const incumbents = {
-      0: ["Neel Poettinger"],
-      1: ["Ciryl"],
-      2: ["Sacha Wiernik"],
-      3: ["Ciryl"],
-      4: ["Ciryl", "1 combattante"],
-      5: ["1 combattant", "1 combattante"],
-      6: ["2 combattants hommes"],
-      7: ["4 combattants hommes"],
-      8: ["1 combattante"],
-      9: []
-    };
-
-    let currentFilters = {};
-
-    function getConfig(idx) {
-      const saved = JSON.parse(localStorage.getItem("module_config") || "{}");
-      // [chef, lieu, horaires]
-      return saved[idx] || config[idx] || ["", "", []];
-    }
-    function saveConfig(id) {
-      const idx = parseInt(id.replace("mod", ""));
-      const chef = document.getElementById(id + "_chef").value;
-      const lieu = document.getElementById(id + "_lieu").value;
-      const timeslotSelect = document.getElementById(id + "_timeslot");
-      const horaires = Array.from(timeslotSelect.selectedOptions).map(opt => opt.value);
-      let saved = JSON.parse(localStorage.getItem("module_config") || "{}");
-      saved[idx] = [chef, lieu, horaires];
-      localStorage.setItem("module_config", JSON.stringify(saved));
-    }
-    function loadConfig() {
-      let saved = JSON.parse(localStorage.getItem("module_config") || "{}");
-      Object.keys(saved).forEach(idx => {
-        if (document.getElementById("mod" + idx + "_chef"))
-          document.getElementById("mod" + idx + "_chef").value = saved[idx][0];
-        if (document.getElementById("mod" + idx + "_lieu"))
-          document.getElementById("mod" + idx + "_lieu").value = saved[idx][1];
-        if (document.getElementById("mod" + idx + "_timeslot") && saved[idx][2]) {
-          const select = document.getElementById("mod" + idx + "_timeslot");
-          Array.from(select.options).forEach(opt => {
-            opt.selected = saved[idx][2].includes(opt.value);
-          });
-        }
-      });
-    }
-
     function renderModules() {
       const c = document.getElementById("container");
       let html = "";
       modules.forEach((mod, i) => {
         const id = "mod" + i;
-        const [chef, lieu, horaires] = getConfig(i);
-        const inters = incumbents[i] || [];
         html += `
 <details id="${id}">
   <summary>${mod}</summary>
-
   <label>🎥 Chef opérateur</label>
-  <input type="text" id="${id}_chef" value="${chef}" />
+  <input type="text" id="${id}_chef" />
 
   <label>📍 Lieu</label>
-  <input type="text" id="${id}_lieu" value="${lieu}" />
+  <input type="text" id="${id}_lieu" />
 
   <label>📅 Date</label>
   <input type="date" id="${id}_date" />
@@ -158,9 +91,6 @@
     <option value="14:00-15:00">14:00 - 15:00</option>
     <option value="15:00-16:00">15:00 - 16:00</option>
   </select>
-
-  <label>👥 Incarnants</label>
-  <input type="text" id="${id}_incarnants" value="${inters.join(", ")}" placeholder="Liste des incarnants" />
 
   <hr/>
 
@@ -180,12 +110,6 @@
   </div>
 
   <div id="${id}_notes"></div>
-
-  <div class="upload-block">
-    <label>📎 Upload fichiers (images/PDF)</label>
-    <input type="file" id="${id}_files" multiple accept="image/*,.pdf">
-    <div id="${id}_files_list"></div>
-  </div>
 </details>`;
       });
       c.innerHTML = html;
@@ -193,28 +117,14 @@
       modules.forEach((_, i) => {
         const id = "mod" + i;
         loadNotes(id);
-        setupFileUpload(id);
-        renderFiles(id);
       });
 
-      // Activer la sauvegarde chef/lieu/horaire
-      modules.forEach((_, i) => {
-        const id = "mod" + i;
-        if (document.getElementById(id + "_chef"))
-          document.getElementById(id + "_chef")
-            .addEventListener("change", () => saveConfig(id));
-        if (document.getElementById(id + "_lieu"))
-          document.getElementById(id + "_lieu")
-            .addEventListener("change", () => saveConfig(id));
-        if (document.getElementById(id + "_timeslot"))
-          document.getElementById(id + "_timeslot")
-            .addEventListener("change", () => saveConfig(id));
-      });
-      loadConfig();
-
+      // Gestion des events notes
       c.addEventListener("click", onContainerClick);
       c.addEventListener("keydown", onNoteEntryKeydown);
     }
+
+    let currentFilters = {};
 
     function onContainerClick(e) {
       const t = e.target;
@@ -235,9 +145,6 @@
       if (t.matches(".filter-line button")) {
         const line = t.closest(".filter-line");
         filter(line.dataset.id, t.dataset.filter);
-      }
-      if (t.classList.contains("delete-file")) {
-        deleteFile(t.dataset.id, +t.dataset.idx);
       }
     }
 
@@ -282,27 +189,36 @@
       filter(id, currentFilters[id] || "all");
     }
 
+    // Sauvegarder les notes côté serveur (Netlify Function)
     function saveNotes(id) {
       const blocks = [...document.querySelectorAll("#" + id + "_notes .note-block")];
       const notes = blocks.map(div => ({
         html: div.innerHTML,
         status: div.dataset.status
       }));
-      localStorage.setItem(id + "_notes", JSON.stringify(notes));
+      fetch("/.netlify/functions/saveNotes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ moduleId: id, notes })
+      });
     }
 
+    // Charger les notes depuis le serveur (Netlify Function)
     function loadNotes(id) {
-      const data = localStorage.getItem(id + "_notes");
-      if (!data) return;
-      const area = document.getElementById(id + "_notes");
-      area.innerHTML = "";
-      JSON.parse(data).forEach(n => {
-        const div = document.createElement("div");
-        div.className = "note-block";
-        div.dataset.status = n.status;
-        div.innerHTML = n.html;
-        area.appendChild(div);
-      });
+      fetch("/.netlify/functions/getNotes?moduleId=" + encodeURIComponent(id))
+        .then(r => r.json())
+        .then(data => {
+          const area = document.getElementById(id + "_notes");
+          area.innerHTML = "";
+          if (!data.notes) return;
+          data.notes.forEach(n => {
+            const div = document.createElement("div");
+            div.className = "note-block";
+            div.dataset.status = n.status;
+            div.innerHTML = n.html;
+            area.appendChild(div);
+          });
+        });
     }
 
     function filter(id, stat) {
@@ -313,46 +229,6 @@
       document.querySelectorAll("#" + id + " .note-block").forEach(n => {
         n.style.display = (stat === "all" || n.dataset.status === stat) ? "block" : "none";
       });
-    }
-
-    function setupFileUpload(id) {
-      const input = document.getElementById(id + "_files");
-      input.addEventListener("change", function(event) {
-        const files = Array.from(event.target.files);
-        const stored = JSON.parse(localStorage.getItem(id + "_files") || "[]");
-        let left = files.length;
-        files.forEach(file => {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            stored.push({ name: file.name, type: file.type, data: e.target.result });
-            left--;
-            if (left === 0) {
-              localStorage.setItem(id + "_files", JSON.stringify(stored));
-              renderFiles(id);
-            }
-          };
-          reader.readAsDataURL(file);
-        });
-        input.value = "";
-      });
-    }
-
-    function renderFiles(id) {
-      const files = JSON.parse(localStorage.getItem(id + "_files") || "[]");
-      const el = document.getElementById(id + "_files_list");
-      el.innerHTML = files.map((f, idx) =>
-        `<div class="file-item">
-          <a href="${f.data}" download="${f.name}" target="_blank">${f.name}</a>
-          <button type="button" class="delete-file" data-id="${id}" data-idx="${idx}">Supprimer</button>
-        </div>`
-      ).join("");
-    }
-
-    function deleteFile(id, idx) {
-      const files = JSON.parse(localStorage.getItem(id + "_files") || "[]");
-      files.splice(idx, 1);
-      localStorage.setItem(id + "_files", JSON.stringify(files));
-      renderFiles(id);
     }
 
     // Initialisation
