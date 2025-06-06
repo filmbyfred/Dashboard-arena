@@ -65,6 +65,8 @@
       letter-spacing: .1em;
     }
     input[type="text"],
+    input[type="date"],
+    input[type="time"],
     textarea {
       width: 100%;
       background: #f3f6fa;
@@ -224,11 +226,13 @@
   <footer>
     © 2025 Dashboard Arena
   </footer>
+
   <script type="module">
     // ------ Données permanentes ------
     const modules = [
       "Convois",
-      "Portraits",
+      "Portraits écrans",
+      "Portraits beauties lifestyle",
       "Sac de frappe",
       "Traîneaux",
       "Vélos",
@@ -237,29 +241,34 @@
       "Bains glacés",
       "Combats éliminatoires"
     ];
+
     // Valeurs de base (écrasées par localStorage au besoin)
     const config = {
       0: ["Neel Poettinger", ""],
       1: ["", ""],
-      2: ["Julien Lascar", "HANGAR HM10"],
+      2: ["", ""],
       3: ["Julien Lascar", "HANGAR HM10"],
-      4: ["Neel Poettinger", "HANGAR HM10"],
-      5: ["Neel Poettinger", ""],
+      4: ["Julien Lascar", "HANGAR HM10"],
+      5: ["Neel Poettinger", "HANGAR HM10"],
       6: ["Neel Poettinger", ""],
-      7: ["Julien Lascar", "HANGAR HM10"],
-      8: ["", ""]
+      7: ["Neel Poettinger", ""],
+      8: ["Julien Lascar", "HANGAR HM10"],
+      9: ["", ""]
     };
+
     const incumbents = {
       0: ["Neel Poettinger"],
-      1: ["Ciryl (Portraits écrans)", "Ciryl & 1 combattante"],
-      2: ["Ciryl"],
-      3: ["Ciryl", "1 combattante"],
-      4: ["1 combattant", "1 combattante"],
-      5: ["2 combattants hommes"],
-      6: ["4 combattants hommes"],
-      7: ["1 combattante"],
-      8: []
+      1: ["Ciryl"],
+      2: ["Sacha Wiernik"],
+      3: ["Ciryl"],
+      4: ["Ciryl", "1 combattante"],
+      5: ["1 combattant", "1 combattante"],
+      6: ["2 combattants hommes"],
+      7: ["4 combattants hommes"],
+      8: ["1 combattante"],
+      9: []
     };
+
     let currentFilters = {};
 
     function getConfig(idx) {
@@ -295,19 +304,31 @@
         html += `
 <details id="${id}">
   <summary>${mod}</summary>
+
   <label>🎥 Chef opérateur</label>
   <input type="text" id="${id}_chef" value="${chef}" />
+
   <label>📍 Lieu</label>
   <input type="text" id="${id}_lieu" value="${lieu}" />
+
+  <label>📅 Date</label>
+  <input type="date" id="${id}_date" />
+
+  <label>⏰ Horaire</label>
+  <input type="time" id="${id}_time" />
+
   <label>👥 Incarnants</label>
   <input type="text" id="${id}_incarnants" value="${inters.join(", ")}" placeholder="Liste des incarnants" />
+
   <hr/>
+
   <label>📝 Ajouter une note</label>
   <div class="note-entry">
     <input type="text" id="${id}_author" placeholder="Auteur">
     <input type="text" id="${id}_text" placeholder="Texte de la note">
     <button type="button" data-action="add-note" data-id="${id}">Ajouter</button>
   </div>
+
   <div class="filter-line" data-id="${id}">
     <span>Filtrer :</span>
     <button type="button" data-filter="all" class="active">Tous</button>
@@ -315,7 +336,9 @@
     <button type="button" data-filter="progress">En cours</button>
     <button type="button" data-filter="done">Traité</button>
   </div>
+
   <div id="${id}_notes"></div>
+
   <div class="upload-block">
     <label>📎 Upload fichiers (images/PDF)</label>
     <input type="file" id="${id}_files" multiple accept="image/*,.pdf">
@@ -324,21 +347,26 @@
 </details>`;
       });
       c.innerHTML = html;
+
       modules.forEach((_, i) => {
         const id = "mod" + i;
         loadNotes(id);
         setupFileUpload(id);
         renderFiles(id);
       });
-      // Activation sauvegarde chef/lieu
+
+      // Activer la sauvegarde chef/lieu
       modules.forEach((_, i) => {
         const id = "mod" + i;
         if (document.getElementById(id + "_chef"))
-          document.getElementById(id + "_chef").addEventListener("change", () => saveConfig(id));
+          document.getElementById(id + "_chef")
+            .addEventListener("change", () => saveConfig(id));
         if (document.getElementById(id + "_lieu"))
-          document.getElementById(id + "_lieu").addEventListener("change", () => saveConfig(id));
+          document.getElementById(id + "_lieu")
+            .addEventListener("change", () => saveConfig(id));
       });
       loadConfig();
+
       c.addEventListener("click", onContainerClick);
       c.addEventListener("keydown", onNoteEntryKeydown);
     }
@@ -374,6 +402,7 @@
         addNote(id);
       }
     }
+
     function addNote(id) {
       const nameEl = document.getElementById(id + "_author");
       const textEl = document.getElementById(id + "_text");
@@ -395,6 +424,7 @@
       saveNotes(id);
       filter(id, currentFilters[id] || "all");
     }
+
     function toggleStatus(el) {
       const states = ["todo", "progress", "done"];
       const labels = ["À traiter", "En cours", "Traité"];
@@ -406,6 +436,7 @@
       saveNotes(id);
       filter(id, currentFilters[id] || "all");
     }
+
     function saveNotes(id) {
       const blocks = [...document.querySelectorAll("#" + id + "_notes .note-block")];
       const notes = blocks.map(div => ({
@@ -414,6 +445,7 @@
       }));
       localStorage.setItem(id + "_notes", JSON.stringify(notes));
     }
+
     function loadNotes(id) {
       const data = localStorage.getItem(id + "_notes");
       if (!data) return;
@@ -427,6 +459,7 @@
         area.appendChild(div);
       });
     }
+
     function filter(id, stat) {
       currentFilters[id] = stat;
       const buttons = document.querySelectorAll("#" + id + " .filter-line button");
@@ -436,6 +469,7 @@
         n.style.display = (stat === "all" || n.dataset.status === stat) ? "block" : "none";
       });
     }
+
     function setupFileUpload(id) {
       const input = document.getElementById(id + "_files");
       input.addEventListener("change", function(event) {
@@ -457,6 +491,7 @@
         input.value = "";
       });
     }
+
     function renderFiles(id) {
       const files = JSON.parse(localStorage.getItem(id + "_files") || "[]");
       const el = document.getElementById(id + "_files_list");
@@ -467,14 +502,17 @@
         </div>`
       ).join("");
     }
+
     function deleteFile(id, idx) {
       const files = JSON.parse(localStorage.getItem(id + "_files") || "[]");
       files.splice(idx, 1);
       localStorage.setItem(id + "_files", JSON.stringify(files));
       renderFiles(id);
     }
+
     // Initialisation
     renderModules();
   </script>
 </body>
 </html>
+
