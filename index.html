@@ -37,6 +37,7 @@
     hr { border: none; border-top: 1px solid #f1f3f6; margin: 2rem 0; }
     footer { text-align: center; color: #aaa; padding: 36px 0 18px 0; font-size: 1rem; margin-top: 60px; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header>
@@ -50,6 +51,11 @@
   </footer>
 
   <script>
+    // ------ Supabase ------
+    const SUPABASE_URL = 'https://agrpuquffudxgrgdiqxi.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFncnB1cXVmZnVkeGdyZ2RpcXhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMjM5NzEsImV4cCI6MjA2NDc5OTk3MX0.aG_ko5Tpyu9QTxMD0e7Mr9HZZex1NvX4WueDu7YtLfs';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     // ------ Données permanentes ------
     const modules = [
       "Convois",
@@ -63,6 +69,13 @@
       "Bains glacés",
       "Combats éliminatoires"
     ];
+
+    function getStatusLabel(status) {
+      return status === "todo" ? "À traiter" : status === "progress" ? "En cours" : "Traité";
+    }
+    function getNextStatus(status) {
+      return status === "todo" ? "progress" : status === "progress" ? "done" : "todo";
+    }
 
     function renderModules() {
       const c = document.getElementById("container");
@@ -119,28 +132,31 @@
         loadNotes(id);
       });
 
-      // Gestion des events notes
       c.addEventListener("click", onContainerClick);
       c.addEventListener("keydown", onNoteEntryKeydown);
     }
 
     let currentFilters = {};
 
-    function onContainerClick(e) {
+    async function onContainerClick(e) {
       const t = e.target;
       if (t.dataset.action === "add-note") {
         const id = t.dataset.id;
-        addNote(id);
+        await addNote(id);
       }
       if (t.classList.contains("status")) {
-        toggleStatus(t.closest(".note-block"));
+        const block = t.closest(".note-block");
+        const noteId = block.querySelector(".delete-note").dataset.noteid;
+        const moduleId = block.closest("details").id;
+        const curStatus = block.dataset.status;
+        const nextStatus = getNextStatus(curStatus);
+        await supabase.from('notes').update({ status: nextStatus }).eq('id', noteId);
+        loadNotes(moduleId);
       }
       if (t.classList.contains("delete-note")) {
-        const block = t.closest(".note-block");
-        const parent = block.closest("details").id;
-        block.remove();
-        saveNotes(parent);
-        filter(parent, currentFilters[parent] || "all");
+        const noteId = t.dataset.noteid;
+        const moduleId = t.closest("details").id;
+        await deleteNote(noteId, moduleId);
       }
       if (t.matches(".filter-line button")) {
         const line = t.closest(".filter-line");
@@ -155,70 +171,55 @@
       }
     }
 
-    function addNote(id) {
+    async function addNote(id) {
       const nameEl = document.getElementById(id + "_author");
       const textEl = document.getElementById(id + "_text");
       const name = nameEl.value.trim();
       const text = textEl.value.trim();
       if (!text) return;
-      const div = document.createElement("div");
-      div.className = "note-block";
-      div.dataset.status = "todo";
-      div.innerHTML = `
-        <div class="meta">${name || "Anonyme"}</div>
-        <div>${text}</div>
-        <button type="button" class="status">À traiter</button>
-        <button type="button" class="delete-note">Supprimer</button>
-      `;
-      document.getElementById(id + "_notes").appendChild(div);
+      await supabase.from('notes').insert([
+        {
+          module_id: id,
+          author: name,
+          content: text,
+          status: 'todo'
+        }
+      ]);
       nameEl.value = "";
       textEl.value = "";
-      saveNotes(id);
-      filter(id, currentFilters[id] || "all");
+      loadNotes(id);
     }
 
-    function toggleStatus(el) {
-      const states = ["todo", "progress", "done"];
-      const labels = ["À traiter", "En cours", "Traité"];
-      let cur = states.indexOf(el.dataset.status || "todo");
-      let next = (cur + 1) % 3;
-      el.dataset.status = states[next];
-      el.querySelector(".status").innerText = labels[next];
-      const id = el.closest("details").id;
-      saveNotes(id);
-      filter(id, currentFilters[id] || "all");
+    async function deleteNote(noteId, moduleId) {
+      await supabase.from('notes').delete().eq('id', noteId);
+      loadNotes(moduleId);
     }
 
-    // Sauvegarder les notes côté serveur (Netlify Function)
-    function saveNotes(id) {
-      const blocks = [...document.querySelectorAll("#" + id + "_notes .note-block")];
-      const notes = blocks.map(div => ({
-        html: div.innerHTML,
-        status: div.dataset.status
-      }));
-      fetch("/.netlify/functions/saveNotes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ moduleId: id, notes })
+    async function loadNotes(id) {
+      const { data, error } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('module_id', id)
+        .order('created_at', { ascending: true });
+      const area = document.getElementById(id + "_notes");
+      area.innerHTML = "";
+      if (error) {
+        area.innerHTML = "<div style='color:red'>Erreur de chargement</div>";
+        return;
+      }
+      data.forEach(n => {
+        const div = document.createElement("div");
+        div.className = "note-block";
+        div.dataset.status = n.status;
+        div.innerHTML = `
+          <div class="meta">${n.author || "Anonyme"}</div>
+          <div>${n.content}</div>
+          <button type="button" class="status">${getStatusLabel(n.status)}</button>
+          <button type="button" class="delete-note" data-noteid="${n.id}">Supprimer</button>
+        `;
+        area.appendChild(div);
       });
-    }
-
-    // Charger les notes depuis le serveur (Netlify Function)
-    function loadNotes(id) {
-      fetch("/.netlify/functions/getNotes?moduleId=" + encodeURIComponent(id))
-        .then(r => r.json())
-        .then(data => {
-          const area = document.getElementById(id + "_notes");
-          area.innerHTML = "";
-          if (!data.notes) return;
-          data.notes.forEach(n => {
-            const div = document.createElement("div");
-            div.className = "note-block";
-            div.dataset.status = n.status;
-            div.innerHTML = n.html;
-            area.appendChild(div);
-          });
-        });
+      filter(id, currentFilters[id] || "all");
     }
 
     function filter(id, stat) {
