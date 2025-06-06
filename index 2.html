@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tournage – L’Arène</title>
+  <meta name="description" content="Dashboard tournage ARENE.">
+  <style>
+    body { font-family: sans-serif; background: #0f1723; color: #f2f2f2; margin: 0; padding: 2rem 1rem 4rem; }
+    h1 { text-align: center; color: #4fd1c5; font-size: 1.8em; margin-bottom: 1.5rem; }
+    .filters { text-align: center; margin: 1rem 0 2rem; }
+    .filters button {
+      margin: 0 0.3rem;
+      padding: 6px 12px;
+      border: none;
+      background: #4fd1c5;
+      color: #000;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .filters button.active { background: #fcb900; }
+    .filters button:hover { background: #38b2ac; }
+    details { background: #1c2432; margin: 1rem auto; border-radius: 10px; padding: 1rem; max-width: 800px; box-shadow: 0 0 12px #0005; }
+    summary { font-size: 1.2em; font-weight: bold; color: #fcb900; cursor: pointer; outline: none; }
+    label { display: block; margin: 1rem 0 0.3rem; font-weight: 600; }
+    input[type="text"], textarea { width: 100%; background: #111c2a; border: 1px solid #4fd1c5; color: white; padding: 0.5rem; font-size: 1rem; border-radius: 6px; }
+    ul { padding-left: 0; list-style: none; margin-top: 1rem; }
+    li { margin: 0.5rem 0; }
+    input[type="checkbox"] { margin-right: 0.5rem; }
+    .note-block { background: #0d1a2a; padding: 0.6rem; margin: 0.5rem 0; border-radius: 6px; border-left: 4px solid #4fd1c5; position: relative; }
+    .note-block .status { position: absolute; top: 6px; right: 6px; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; cursor: pointer; }
+    .note-block[data-status="todo"] .status { background: #fcb900; color: #000; }
+    .note-block[data-status="progress"] .status { background: #4299e1; color: #fff; }
+    .note-block[data-status="done"] .status { background: #38a169; color: #fff; }
+    .note-block .meta { font-size: 0.85em; color: #ccc; margin-bottom: 4px; }
+    button { margin-top: 6px; padding: 6px 12px; border: none; background: #4fd1c5; color: #000; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #38b2ac; }
+  </style>
+</head>
+<body>
+  <h1>🎬 Dashboard de tournage – L’Arène</h1>
+  <div class="filters">
+    <button onclick="filterNotes('all')" class="active">Tous</button>
+    <button onclick="filterNotes('todo')">⏳ À traiter</button>
+    <button onclick="filterNotes('progress')">🛠️ En cours</button>
+    <button onclick="filterNotes('done')">✅ Traité</button>
+  </div>
+  <div id="modules-container"></div>
+<script>
+const modules = [
+  "Convois", "Portraits", "Sac de frappe", "Traîneaux", "Vélos",
+  "Combat piscine", "Lutte des territoires", "Bains glacés", "Combats éliminatoires"
+];
+
+let currentFilter = 'all';
+
+function getStatusLabel(code) {
+  return {
+    todo: "⏳ À traiter",
+    progress: "🛠️ En cours",
+    done: "✅ Traité"
+  }[code];
+}
+
+function toggleStatus(div) {
+  const current = div.dataset.status;
+  const next = current === "todo" ? "progress" : current === "progress" ? "done" : "todo";
+  div.dataset.status = next;
+  div.querySelector('.status').textContent = getStatusLabel(next);
+  saveNotes(div.closest("details").id);
+  filterNotes(currentFilter);
+}
+
+function addNote(modId) {
+  const name = document.getElementById(modId + "_name").value.trim();
+  const text = document.getElementById(modId + "_text").value.trim();
+  if (!text) return;
+  const div = document.createElement("div");
+  div.className = "note-block";
+  div.dataset.status = "todo";
+  div.innerHTML = `
+    <div class="meta">${name || "Anonyme"}</div>
+    <div>${text}</div>
+    <div class="status" onclick="toggleStatus(this.parentElement)">${getStatusLabel("todo")}</div>
+  `;
+  document.getElementById(modId + "_notes").appendChild(div);
+  document.getElementById(modId + "_text").value = "";
+  saveNotes(modId);
+  filterNotes(currentFilter);
+}
+
+function saveNotes(modId) {
+  const blocks = document.querySelectorAll("#" + modId + "_notes .note-block");
+  const notes = Array.from(blocks).map(b => ({
+    html: b.innerHTML,
+    status: b.dataset.status
+  }));
+  localStorage.setItem(modId + "_notes", JSON.stringify(notes));
+}
+
+function loadNotes(modId) {
+  const data = localStorage.getItem(modId + "_notes");
+  if (!data) return;
+  const list = document.getElementById(modId + "_notes");
+  list.innerHTML = "";
+  JSON.parse(data).forEach(note => {
+    const div = document.createElement("div");
+    div.className = "note-block";
+    div.dataset.status = note.status;
+    div.innerHTML = note.html;
+    list.appendChild(div);
+  });
+}
+
+function renderModules() {
+  const container = document.getElementById("modules-container");
+  modules.forEach((mod, i) => {
+    const id = "mod" + i;
+    container.innerHTML += `
+      <details id="${id}">
+        <summary>${mod}</summary>
+        <label>Lieu</label><input type="text" />
+        <label>Chef op</label><input type="text" />
+        <label>Horaire</label><input type="text" />
+        <label>Auteur</label><input type="text" id="${id}_name" placeholder="Nom">
+        <label>Ajouter une note</label>
+        <textarea id="${id}_text"></textarea>
+        <button onclick="addNote('${id}')">Ajouter note</button>
+        <div id="${id}_notes"></div>
+      </details>
+    `;
+    loadNotes(id);
+  });
+}
+
+function filterNotes(status) {
+  currentFilter = status;
+  document.querySelectorAll(".filters button").forEach(b => b.classList.remove("active"));
+  document.querySelector(`.filters button[onclick*="${status}"]`).classList.add("active");
+  document.querySelectorAll(".note-block").forEach(n => {
+    n.style.display = (status === "all" || n.dataset.status === status) ? "block" : "none";
+  });
+}
+
+renderModules();
+</script>
+</body>
+</html>
