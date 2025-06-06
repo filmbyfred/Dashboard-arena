@@ -224,6 +224,37 @@
       word-break: break-all;
       font-size: 1em;
     }
+    .diagnostic-toggle {
+      display: block;
+      margin: 2em auto 0 auto;
+      background: #eee;
+      border: 1.5px solid #cee5fb;
+      color: #2a62c6;
+      padding: 8px 22px;
+      font-size: 1em;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 1px 3px #0001;
+      transition: background .13s, color .13s;
+    }
+    .diagnostic-toggle:hover {
+      background: #d9edff;
+      color: #0071e3;
+    }
+    #diagnostic {
+      display: none;
+    }
+    #diagnostic.visible {
+      display: block;
+      background:#fffae0;
+      margin:2em 0;
+      padding:1em 1.5em;
+      border-radius:14px;
+      font-size:1em;
+      box-shadow:0 1px 7px #0001;
+      overflow-x:auto;
+    }
     @media (max-width: 680px) {
       main { padding: 0 2px; }
       details { padding: 0.5rem 0.2rem; }
@@ -239,14 +270,15 @@
   </header>
   <main>
     <div id="container"></div>
-    <div id="diagnostic" style="background:#fffae0;margin:2em 0;padding:1em 1.5em;border-radius:14px;font-size:1em;box-shadow:0 1px 7px #0001"></div>
+    <button class="diagnostic-toggle" onclick="toggleDiagnostic()">Afficher le diagnostic admin</button>
+    <div id="diagnostic"></div>
   </main>
   <footer>
     © 2025 Dashboard Arena
   </footer>
   <script>
     // ---- SUPABASE SETUP ----
-    const SUPABASE_URL = 'https://agrpuquffudxgrgdiqxi.supabase.co'; // à adapter si besoin
+    const SUPABASE_URL = 'https://agrpuquffudxgrgdiqxi.supabase.co'; // adapte avec ton projet
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFncnB1cXVmZnVkeGdyZ2RpcXhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMjM5NzEsImV4cCI6MjA2NDc5OTk3MX0.aG_ko5Tpyu9QTxMD0e7Mr9HZZex1NvX4WueDu7YtLfs';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -313,6 +345,18 @@
       } else html += "<i>Aucun fichier</i>";
 
       document.getElementById("diagnostic").innerHTML = html;
+    }
+
+    // --- Diagnostic toggle
+    function toggleDiagnostic() {
+      const diag = document.getElementById("diagnostic");
+      diag.classList.toggle("visible");
+      if (diag.classList.contains("visible")) {
+        showDiagnostic();
+        document.querySelector(".diagnostic-toggle").textContent = "Masquer le diagnostic admin";
+      } else {
+        document.querySelector(".diagnostic-toggle").textContent = "Afficher le diagnostic admin";
+      }
     }
 
     // --- Rendu des modules accordéon ---
@@ -507,7 +551,7 @@
       await supabase.from('modules').upsert([
         { id, chef, lieu, date: (date || null), horaires, updated_at: new Date().toISOString() }
       ]);
-      showDiagnostic();
+      if (document.getElementById("diagnostic").classList.contains("visible")) showDiagnostic();
     }
 
     // --- UPLOAD MULTI-FICHIERS ---
@@ -520,13 +564,13 @@
       for (let file of files) {
         // Upload sur Storage
         const filename = `${id}/${Date.now()}_${encodeURIComponent(file.name)}`;
-        let { data, error } = await supabase.storage.from('module_files').upload(filename, file, { upsert: false });
+        let { data, error } = await supabase.storage.from('module-files').upload(filename, file, { upsert: false });
         if (error && !/already exists/i.test(error.message)) {
           alert("Erreur d'upload: " + error.message);
           continue;
         }
         // Récupération URL publique
-        const { data: urlData } = supabase.storage.from('module_files').getPublicUrl(filename);
+        const { data: urlData } = supabase.storage.from('module-files').getPublicUrl(filename);
         const url = urlData.publicUrl;
         // Enregistrement en base
         await supabase.from('module_files').insert([
@@ -540,7 +584,7 @@
       }
       t.value = ""; // reset input
       loadFiles(id);
-      showDiagnostic();
+      if (document.getElementById("diagnostic").classList.contains("visible")) showDiagnostic();
     }
     async function loadFiles(id) {
       const { data, error } = await supabase
@@ -577,19 +621,18 @@
       const { data, error } = await supabase.from('module_files').select('*').eq('id', fileId).maybeSingle();
       if (!data) return;
       // Supprime du Storage
-      const path = data.url.split('/module_files/')[1];
-      await supabase.storage.from('module_files').remove([path]);
+      const path = data.url.split('/module-files/')[1];
+      await supabase.storage.from('module-files').remove([path]);
       // Supprime de la table
       await supabase.from('module_files').delete().eq('id', fileId);
       loadFiles(moduleId);
-      showDiagnostic();
+      if (document.getElementById("diagnostic").classList.contains("visible")) showDiagnostic();
     }
 
     // --- INIT ---
     (async function() {
       await ensureAllModulesExist();
       renderModules();
-      showDiagnostic();
     })();
   </script>
 </body>
