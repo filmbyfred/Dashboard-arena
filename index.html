@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="fr"><head>
+<html lang="fr">
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tournage – L’Arène</title>
@@ -43,8 +44,12 @@
 <body>
 <h1>🎬 Tournage – Règles & Modules additionnels</h1>
 <div id="container"></div>
-<script>
-const modules = ["Convois", "Portraits", "Sac de frappe", "Traîneaux", "Vélos", "Combat piscine", "Lutte des territoires", "Bains glacés", "Combats éliminatoires"];
+<script type="module">
+// ------ Optimisé et modulaire ------
+const modules = [
+  "Convois", "Portraits", "Sac de frappe", "Traîneaux", "Vélos",
+  "Combat piscine", "Lutte des territoires", "Bains glacés", "Combats éliminatoires"
+];
 const config = {
   0: ["Neel Poettinger", ""],
   1: ["Julien Lascar / Sacha Wiernik", "Portraits écrans : HANGAR FROIDS / Portraits beauties : Ext & Int SILO"],
@@ -58,64 +63,106 @@ const config = {
 };
 let currentFilters = {};
 
+document.addEventListener('DOMContentLoaded', renderModules);
+
 function renderModules() {
   const c = document.getElementById("container");
+  let html = "";
   modules.forEach((mod, i) => {
     const id = "mod" + i;
     const chef = config[i][0], lieu = config[i][1];
-    c.innerHTML += `
+    html += `
 <details id="${id}">
   <summary>${mod}</summary>
   <label>🎥 Chef opérateur</label>
-  <input type="text" value="${chef}" />
+  <input type="text" value="${chef}" tabindex="0" aria-label="Chef opérateur" />
   <label>📍 Lieu</label>
-  <input type="text" value="${lieu}" />
+  <input type="text" value="${lieu}" tabindex="0" aria-label="Lieu" />
   <label>📝 Ajouter une note</label>
   <div class="note-entry">
-    <input type="text" id="${id}_author" placeholder="Nom">
-    <input type="text" id="${id}_text" placeholder="Note...">
-    <button onclick="addNote('${id}')">Ajouter</button>
+    <input type="text" id="${id}_author" placeholder="Nom" autocomplete="off">
+    <input type="text" id="${id}_text" placeholder="Note..." autocomplete="off">
+    <button type="button" data-action="add" data-id="${id}">Ajouter</button>
   </div>
-  <div class="filter-line">
+  <div class="filter-line" data-id="${id}">
     <span>Filtrer :</span>
-    <button onclick="filter('${id}', 'all')" class="active">Tous</button>
-    <button onclick="filter('${id}', 'todo')">À traiter</button>
-    <button onclick="filter('${id}', 'progress')">En cours</button>
-    <button onclick="filter('${id}', 'done')">Traité</button>
+    <button type="button" data-filter="all" class="active">Tous</button>
+    <button type="button" data-filter="todo">À traiter</button>
+    <button type="button" data-filter="progress">En cours</button>
+    <button type="button" data-filter="done">Traité</button>
   </div>
   <div id="${id}_notes"></div>
 </details>`;
-    loadNotes(id);
+  });
+  c.innerHTML = html;
+  modules.forEach((_, i) => loadNotes("mod" + i));
+  // Event delegation for add note
+  c.addEventListener('click', onContainerClick);
+  // Keyboard: allow Enter to add note
+  c.addEventListener('keydown', onNoteEntryKeydown);
+}
+
+function onContainerClick(e) {
+  const t = e.target;
+  if (t.matches('[data-action="add"]')) {
+    addNote(t.dataset.id);
+  } else if (t.classList.contains("status")) {
+    toggleStatus(t.closest(".note-block"));
+  } else if (t.matches('.filter-line button')) {
+    const line = t.closest('.filter-line');
+    filter(line.dataset.id, t.dataset.filter);
+  }
+}
+
+function onNoteEntryKeydown(e) {
+  if (e.key === "Enter" && e.target.matches('input[id$="_text"]')) {
+    const id = e.target.id.replace("_text", "");
+    addNote(id);
+  }
+}
+
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, function (m) {
+    return ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    })[m];
   });
 }
 
 function addNote(id) {
-  const name = document.getElementById(id + "_author").value.trim();
-  const text = document.getElementById(id + "_text").value.trim();
+  const nameEl = document.getElementById(id + "_author");
+  const textEl = document.getElementById(id + "_text");
+  const name = escapeHtml(nameEl.value.trim());
+  const text = escapeHtml(textEl.value.trim());
   if (!text) return;
   const div = document.createElement("div");
-  div.className = "note-block"; div.dataset.status = "todo";
+  div.className = "note-block";
+  div.dataset.status = "todo";
   div.innerHTML = `<div class="meta">${name || "Anonyme"}</div>
     <div>${text}</div>
-    <div class="status" onclick="toggleStatus(this.parentElement)">À traiter</div>`;
+    <button type="button" class="status">À traiter</button>`;
   document.getElementById(id + "_notes").appendChild(div);
-  document.getElementById(id + "_text").value = "";
+  textEl.value = "";
   saveNotes(id); filter(id, currentFilters[id] || 'all');
 }
 
-function toggleStatus(el) {
-  const s = ["todo","progress","done"];
-  const l = ["À traiter","En cours","Traité"];
-  let cur = s.indexOf(el.dataset.status || el.parentElement.dataset.status || "todo");
+function toggleStatus(block) {
+  const s = ["todo", "progress", "done"];
+  const l = ["À traiter", "En cours", "Traité"];
+  let cur = s.indexOf(block.dataset.status || "todo");
   let next = (cur + 1) % 3;
-  el.parentElement.dataset.status = s[next];
-  el.innerText = l[next];
-  saveNotes(el.closest("details").id); filter(el.closest("details").id, currentFilters[el.closest("details").id] || 'all');
+  block.dataset.status = s[next];
+  block.querySelector(".status").innerText = l[next];
+  saveNotes(block.closest("details").id);
+  filter(block.closest("details").id, currentFilters[block.closest("details").id] || 'all');
 }
 
 function saveNotes(id) {
   const list = [...document.querySelectorAll("#" + id + "_notes .note-block")];
-  const notes = list.map(div => ({html: div.innerHTML, status: div.dataset.status}));
+  const notes = list.map(div => ({
+    html: div.innerHTML,
+    status: div.dataset.status
+  }));
   localStorage.setItem(id + "_notes", JSON.stringify(notes));
 }
 
@@ -123,23 +170,27 @@ function loadNotes(id) {
   const data = localStorage.getItem(id + "_notes");
   if (!data) return;
   const area = document.getElementById(id + "_notes");
-  JSON.parse(data).forEach(n => {
-    const div = document.createElement("div");
-    div.className = "note-block"; div.dataset.status = n.status;
-    div.innerHTML = n.html;
-    area.appendChild(div);
-  });
+  try {
+    JSON.parse(data).forEach(n => {
+      const div = document.createElement("div");
+      div.className = "note-block"; div.dataset.status = n.status;
+      div.innerHTML = n.html;
+      area.appendChild(div);
+    });
+  } catch (e) {
+    // Corrupted data, ignore
+  }
 }
 
 function filter(id, stat) {
   currentFilters[id] = stat;
-  const all = document.querySelectorAll("#" + id + " .note-block");
-  all.forEach(n => n.style.display = stat === "all" || n.dataset.status === stat ? "block" : "none");
-  document.querySelectorAll("#" + id + " .filter-line button").forEach(b => b.classList.remove("active"));
-  document.querySelector(`#${id} .filter-line button[onclick*="${stat}"]`).classList.add("active");
+  const all = document.querySelectorAll("#" + id + "_notes .note-block");
+  all.forEach(n => n.style.display = (stat === "all" || n.dataset.status === stat) ? "block" : "none");
+  const filterButtons = document.querySelectorAll(`#${id} .filter-line button`);
+  filterButtons.forEach(b => b.classList.remove("active"));
+  const btn = [...filterButtons].find(b => b.dataset.filter === stat);
+  if (btn) btn.classList.add("active");
 }
-
-renderModules();
 </script>
 </body>
 </html>
