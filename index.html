@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard Arena – Accordéon Debug</title>
+  <title>Dashboard Arena – Modules</title>
   <link href="https://fonts.googleapis.com/css?family=Inter:400,700,800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -77,7 +77,7 @@
       letter-spacing: .08em;
       display: block;
     }
-    input[type="text"], input[type="date"], textarea {
+    input[type="text"], input[type="date"] {
       width: 100%;
       background: #f7fafd;
       border: 1.5px solid #d2e8fd;
@@ -89,84 +89,12 @@
       margin-top: 0.10rem;
       transition: border .18s, box-shadow .2s;
       box-shadow: 0 1px 2px rgba(0,113,227,0.03);
-      resize: vertical;
       outline: none;
     }
-    input:focus, textarea:focus {
+    input:focus {
       border-color: #0071e3;
       box-shadow: 0 0 0 2px #b3d9fa;
     }
-    .note-entry {
-      display: flex;
-      gap: 10px;
-      margin: 1.1rem 0 0.4rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .note-block {
-      background: #f3f9fd;
-      padding: 0.77rem 1.1rem 0.77rem 1.15rem;
-      margin: 0.7rem 0;
-      border-radius: 13px;
-      border-left: 6px solid #0071e3;
-      position: relative;
-      box-shadow: 0 3px 18px rgba(0,113,227,0.07);
-      transition: box-shadow .2s, background .2s;
-      animation: noteAppear 0.4s;
-    }
-    @keyframes noteAppear {
-      from { opacity: 0; transform: translateY(10px);}
-      to   { opacity: 1; transform: none;}
-    }
-    .note-block .meta {
-      font-size: 0.97em;
-      color: #558;
-      margin-bottom: 4px;
-      font-weight: 500;
-    }
-    .note-block .status, .note-block .delete-note {
-      position: absolute;
-      top: 10px;
-      border-radius: 8px;
-      font-size: 0.94em;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      padding: 4px 14px;
-      transition: background .2s, color .2s;
-    }
-    .note-block .status {
-      right: 108px;
-    }
-    .note-block .delete-note {
-      right: 18px;
-      background: #ee5353;
-      color: #fff;
-      font-size: 0.93em;
-    }
-    .note-block[data-status="todo"] .status { background: #ffe6a4; color: #9a7700; }
-    .note-block[data-status="progress"] .status { background: #d0e6ff; color: #1769c1; }
-    .note-block[data-status="done"] .status { background: #bbf7c2; color: #107c41; }
-    .filter-line {
-      margin-top: 0.7rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.65rem;
-      align-items: center;
-    }
-    .filter-line button {
-      background: #f3f6fa;
-      color: #0071e3;
-      font-size: 1em;
-      padding: 7px 16px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background .15s, color .13s;
-      margin-bottom: 0.18em;
-    }
-    .filter-line button.active { background: #0071e3; color: #fff; }
     .flash {
       box-shadow: 0 0 0 3px #ffe561 !important;
       transition: box-shadow 0.6s;
@@ -174,7 +102,6 @@
     @media (max-width: 680px) {
       main { padding: 0 2px; }
       details { padding: 0.5rem 0.2rem; }
-      .note-block { padding: 0.7rem 0.7rem 0.7rem 0.9rem; }
       header h1 { font-size: 1.3em; }
     }
     footer { text-align: center; color: #aaa; padding: 36px 0 18px 0; font-size: 1rem; margin-top: 60px; }
@@ -182,7 +109,7 @@
 </head>
 <body>
   <header>
-    <h1>🎬 Dashboard Arena – Accordéon & Debug</h1>
+    <h1>🎬 Dashboard Arena – Modules</h1>
   </header>
   <main>
     <div id="container"></div>
@@ -262,141 +189,13 @@
 
   <label>🕒 Tranches horaires (libre)</label>
   <input type="text" id="${id}_horaires" placeholder="Ex : 08h30-10h, 14h-16h" autocomplete="off" />
-
-  <hr style="margin:1em 0">
-
-  <label>📝 Ajouter une note</label>
-  <div class="note-entry">
-    <input type="text" id="${id}_author" placeholder="Auteur">
-    <input type="text" id="${id}_text" placeholder="Texte de la note">
-    <button type="button" data-action="add-note" data-id="${id}">Ajouter</button>
-  </div>
-
-  <div class="filter-line" data-id="${id}">
-    <span>Filtrer :</span>
-    <button type="button" data-filter="all" class="active">Tous</button>
-    <button type="button" data-filter="todo">À traiter</button>
-    <button type="button" data-filter="progress">En cours</button>
-    <button type="button" data-filter="done">Traité</button>
-  </div>
-
-  <div id="${id}_notes"></div>
 </details>`;
       });
       c.innerHTML = html;
-
       modules.forEach((_, i) => {
         const id = "mod" + i;
-        loadNotes(id);
         loadModule(id);
         setupSyncFields(id);
-      });
-
-      c.addEventListener("click", onContainerClick);
-      c.addEventListener("keydown", onNoteEntryKeydown);
-    }
-
-    // --- Gestion notes ---
-    let currentFilters = {};
-
-    function getStatusLabel(status) {
-      return status === "todo" ? "À traiter" : status === "progress" ? "En cours" : "Traité";
-    }
-    function getNextStatus(status) {
-      return status === "todo" ? "progress" : status === "progress" ? "done" : "todo";
-    }
-
-    async function onContainerClick(e) {
-      const t = e.target;
-      if (t.dataset.action === "add-note") {
-        const id = t.dataset.id;
-        await addNote(id);
-      }
-      if (t.classList.contains("status")) {
-        const block = t.closest(".note-block");
-        const noteId = block.querySelector(".delete-note").dataset.noteid;
-        const moduleId = block.closest("details").id;
-        const curStatus = block.dataset.status;
-        const nextStatus = getNextStatus(curStatus);
-        await supabase.from('notes').update({ status: nextStatus }).eq('id', noteId);
-        loadNotes(moduleId);
-      }
-      if (t.classList.contains("delete-note")) {
-        const noteId = t.dataset.noteid;
-        const moduleId = t.closest("details").id;
-        await deleteNote(noteId, moduleId);
-      }
-      if (t.matches(".filter-line button")) {
-        const line = t.closest(".filter-line");
-        filter(line.dataset.id, t.dataset.filter);
-      }
-    }
-
-    function onNoteEntryKeydown(e) {
-      if (e.key === "Enter" && e.target.matches("input[id$='_text']")) {
-        const id = e.target.id.replace("_text", "");
-        addNote(id);
-      }
-    }
-
-    async function addNote(id) {
-      const nameEl = document.getElementById(id + "_author");
-      const textEl = document.getElementById(id + "_text");
-      const name = nameEl.value.trim();
-      const text = textEl.value.trim();
-      if (!text) return;
-      await supabase.from('notes').insert([
-        {
-          module_id: id,
-          author: name,
-          content: text,
-          status: 'todo'
-        }
-      ]);
-      nameEl.value = "";
-      textEl.value = "";
-      loadNotes(id);
-    }
-
-    async function deleteNote(noteId, moduleId) {
-      await supabase.from('notes').delete().eq('id', noteId);
-      loadNotes(moduleId);
-    }
-
-    async function loadNotes(id) {
-      const { data, error } = await supabase
-        .from('notes')
-        .select('*')
-        .eq('module_id', id)
-        .order('created_at', { ascending: true });
-      const area = document.getElementById(id + "_notes");
-      area.innerHTML = "";
-      if (error) {
-        area.innerHTML = "<div style='color:red'>Erreur de chargement</div>";
-        return;
-      }
-      data.forEach(n => {
-        const div = document.createElement("div");
-        div.className = "note-block";
-        div.dataset.status = n.status;
-        div.innerHTML = `
-          <div class="meta">${n.author || "Anonyme"}</div>
-          <div>${n.content}</div>
-          <button type="button" class="status">${getStatusLabel(n.status)}</button>
-          <button type="button" class="delete-note" data-noteid="${n.id}">Supprimer</button>
-        `;
-        area.appendChild(div);
-      });
-      filter(id, currentFilters[id] || "all");
-    }
-
-    function filter(id, stat) {
-      currentFilters[id] = stat;
-      const buttons = document.querySelectorAll("#" + id + " .filter-line button");
-      buttons.forEach(b => b.classList.remove("active"));
-      document.querySelector(`#${id} .filter-line button[data-filter="${stat}"]`).classList.add("active");
-      document.querySelectorAll("#" + id + " .note-block").forEach(n => {
-        n.style.display = (stat === "all" || n.dataset.status === stat) ? "block" : "none";
       });
     }
 
