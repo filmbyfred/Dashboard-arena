@@ -3,101 +3,130 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tournage – L’Arène</title>
-  <link href="https://fonts.googleapis.com/css?family=Inter:400,600,700,800&display=swap" rel="stylesheet">
+  <title>Dashboard Arena – Refonte</title>
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,600,800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body {
-      background: linear-gradient(120deg, #f9fafc 60%, #e2eafe 100%);
-      color: #1a2746;
-      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    :root {
+      --main-bg: linear-gradient(120deg, #f5f8fc 60%, #e4e9fa 100%);
+      --card-bg: rgba(255,255,255,0.85);
+      --glass: rgba(255,255,255,0.75);
+      --primary: #3778fa;
+      --primary-dark: #2347bb;
+      --accent: #fda769;
+      --danger: #ee5353;
+      --success: #4ad991;
+      --text: #232d47;
+      --muted: #98a2c3;
+      --border: #e4eaf4;
+      --shadow: 0 8px 32px rgba(55,120,250,0.08);
+      --radius: 19px;
+    }
+    html,body {
       min-height: 100vh;
+      background: var(--main-bg);
+      color: var(--text);
+      font-family: 'Inter', Arial, sans-serif;
     }
-    header {
-      background: #fff;
-      box-shadow: 0 2px 24px rgba(0,0,0,0.09);
-      padding: 48px 0 28px 0;
-      text-align: center;
-      border-radius: 0 0 36px 36px;
-    }
-    header h1 {
-      font-size: 2.5rem;
-      color: #0071e3;
-      font-weight: 800;
-      letter-spacing: 1.3px;
-      margin: 0;
-    }
-    main {
-      max-width: 1000px;
-      margin: 40px auto 0 auto;
-      padding: 0 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
-    }
-    details {
-      background: #fff;
-      border-radius: 22px;
-      box-shadow: 0 8px 36px rgba(0, 113, 227, 0.11);
-      transition: box-shadow .22s, transform .22s;
-      border: none;
+    body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
-      margin-bottom: 1.5em;
-      animation: fadeIn .7s;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(18px);}
-      to   { opacity: 1; transform: none;}
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: linear-gradient(90deg, #3778fa 60%, #92bbfa 100%);
+      color: #fff;
+      padding: 32px 0 26px 0;
+      text-align: center;
+      border-radius: 0 0 36px 36px;
+      box-shadow: 0 2px 24px rgba(55,120,250,0.12);
     }
-    details[open] {
-      box-shadow: 0 16px 50px rgba(0,113,227,0.15);
-      transform: translateY(-2px) scale(1.01);
+    header h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: 1.1px;
+      text-shadow: 0 3px 24px #3778fa33;
+      display: inline-flex;
+      align-items: center;
+      gap: 16px;
     }
-    summary {
-      font-size: 1.2em;
+    header svg {
+      width: 2.4em;
+      height: 2.4em;
+      vertical-align: middle;
+      filter: drop-shadow(0 2px 8px #fff8);
+    }
+    main {
+      max-width: 1200px;
+      margin: 36px auto 0 auto;
+      padding: 0 18px 60px 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px,1fr));
+      gap: 36px;
+      align-items: flex-start;
+    }
+    .module-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1.5px solid var(--border);
+      padding: 2.1rem 2.1rem 1.3rem 2.1rem;
+      transition: box-shadow .18s, border .18s, transform .15s;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2em;
+      min-width: 0;
+      animation: fadeIn .6s;
+      backdrop-filter: blur(2.5px);
+    }
+    .module-card:hover {
+      box-shadow: 0 16px 50px rgba(55,120,250,0.17);
+      border-color: #a3cdfd;
+      transform: scale(1.01) translateY(-2px);
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(24px);} to { opacity: 1; transform: none;} }
+    .module-title {
+      font-size: 1.25rem;
       font-weight: 700;
-      color: #0071e3;
-      cursor: pointer;
-      background: #eaf6ff;
-      padding: 1rem 1.5rem;
-      transition: background .2s;
-      border-bottom: 1px solid #e8eef7;
-      outline: none;
-    }
-    summary:focus, summary:hover {
-      background: #d6e8fa;
+      color: var(--primary-dark);
+      margin-bottom: 0.7em;
+      letter-spacing: 0.03em;
     }
     label {
-      margin: 1.1rem 0 0.2rem;
       font-weight: 600;
-      color: #264080;
+      color: var(--muted);
       letter-spacing: .09em;
       display: block;
+      margin-bottom: .2em;
     }
     input[type="text"], input[type="date"], textarea {
       width: 100%;
-      background: #f7fafd;
-      border: 1px solid #d2e8fd;
-      color: #1a2746;
+      background: var(--glass);
+      border: 1.5px solid var(--border);
+      color: var(--text);
       padding: 0.7rem;
-      font-size: 1rem;
+      font-size: 1.05rem;
       border-radius: 10px;
-      margin-bottom: 0.5rem;
-      margin-top: 0.10rem;
-      transition: border .2s, box-shadow .2s;
-      box-shadow: 0 1px 2px rgba(0,113,227,0.03);
+      margin-bottom: 0.7em;
+      margin-top: 0.08em;
+      transition: border .18s, box-shadow .18s;
+      box-shadow: 0 1px 2px rgba(55,120,250,0.05);
+      outline: none;
+      font-family: inherit;
       resize: vertical;
     }
     input:focus, textarea:focus {
-      border-color: #0071e3;
-      box-shadow: 0 0 0 2px #b3d9fa;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px #cbe4ff;
     }
     .note-entry {
       display: flex;
       gap: 10px;
-      margin: 1.2rem 0 0.4rem;
+      margin: 1.3rem 0 0.4rem;
       flex-wrap: wrap;
       align-items: center;
     }
@@ -105,14 +134,14 @@
       font-size: 1em;
     }
     .note-block {
-      background: #f3f9fd;
-      padding: 0.8rem 1.2rem 0.8rem 1.2rem;
+      background: #eaf2fe;
+      padding: 0.8rem 1.2rem;
       margin: 0.7rem 0;
-      border-radius: 15px;
-      border-left: 6px solid #0071e3;
+      border-radius: 13px;
+      border-left: 6px solid var(--primary);
       position: relative;
-      box-shadow: 0 3px 18px rgba(0,113,227,0.07);
-      transition: box-shadow .2s, background .2s;
+      box-shadow: 0 2px 10px rgba(55,120,250,0.05);
+      transition: box-shadow .18s, background .18s;
       animation: noteAppear 0.4s;
     }
     @keyframes noteAppear {
@@ -120,9 +149,9 @@
       to   { opacity: 1; transform: none;}
     }
     .note-block .meta {
-      font-size: 0.96em;
-      color: #558;
-      margin-bottom: 4px;
+      font-size: 0.95em;
+      color: #6a7899;
+      margin-bottom: 3px;
       font-weight: 500;
     }
     .note-block .status, .note-block .delete-note {
@@ -135,16 +164,10 @@
       border: none;
       padding: 4px 15px;
       transition: background .2s, color .2s;
+      outline: none;
     }
-    .note-block .status {
-      right: 110px;
-    }
-    .note-block .delete-note {
-      right: 18px;
-      background: #ee5353;
-      color: #fff;
-      font-size: 0.93em;
-    }
+    .note-block .status { right: 100px; background: #fff; color: var(--primary);}
+    .note-block .delete-note { right: 18px; background: var(--danger); color: #fff; }
     .note-block[data-status="todo"] .status { background: #ffe6a4; color: #9a7700; }
     .note-block[data-status="progress"] .status { background: #d0e6ff; color: #1769c1; }
     .note-block[data-status="done"] .status { background: #bbf7c2; color: #107c41; }
@@ -157,45 +180,49 @@
     }
     .filter-line button {
       background: #f3f6fa;
-      color: #0071e3;
+      color: var(--primary);
       font-size: 1em;
       padding: 7px 16px;
       border: none;
       border-radius: 10px;
       cursor: pointer;
       font-weight: 600;
-      transition: background .18s, color .16s;
+      transition: background .15s, color .13s;
       margin-bottom: 0.2em;
     }
-    .filter-line button.active { background: #0071e3; color: #fff; }
-    hr { border: none; border-top: 1px solid #f1f3f6; margin: 2rem 0; }
-    footer { text-align: center; color: #aaa; padding: 36px 0 18px 0; font-size: 1rem; margin-top: 60px; }
-    @media (max-width: 680px) {
-      main { padding: 0 2px; }
-      details { padding: 0.5rem 0.2rem; }
-      .note-block { padding: 0.7rem 0.7rem 0.7rem 0.9rem; }
-      header h1 { font-size: 1.3em; }
-    }
-    /* Anim flash sur input modifié */
+    .filter-line button.active { background: var(--primary); color: #fff; }
     .flash {
-      box-shadow: 0 0 0 3px #ffe561 !important;
+      box-shadow: 0 0 0 3px var(--accent) !important;
       transition: box-shadow 0.6s;
+    }
+    footer {
+      text-align: center;
+      color: #a0abc3;
+      padding: 36px 0 18px 0;
+      font-size: 1rem;
+      margin-top: 60px;
+    }
+    @media (max-width: 750px) {
+      main { grid-template-columns: 1fr; padding: 0 2px 30px 2px;}
+      .module-card { padding: 1.3rem 1.1rem 1.1rem 1.1rem; }
+      header h1 { font-size: 1.3em; }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>🎬 Tournage – Règles & Modules additionnels</h1>
+    <h1>
+      <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="24" fill="#fff"/><path d="M12 32l6-12 6 12 6-12 6 12" stroke="#3778fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="24" r="9" fill="#fda769" stroke="#3778fa" stroke-width="2"/></svg>
+      Dashboard Arena
+    </h1>
   </header>
-  <main>
-    <div id="container"></div>
-  </main>
+  <main id="modules-grid"></main>
   <footer>
     © 2025 Dashboard Arena
   </footer>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // ------ SUPABASE SETUP ------
+    // ---- SUPABASE ----
     const SUPABASE_URL = 'https://agrpuquffudxgrgdiqxi.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFncnB1cXVmZnVkeGdyZ2RpcXhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMjM5NzEsImV4cCI6MjA2NDc5OTk3MX0.aG_ko5Tpyu9QTxMD0e7Mr9HZZex1NvX4WueDu7YtLfs';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -213,6 +240,12 @@
       "Combats éliminatoires"
     ];
 
+    // Ensure all modules exist in DB for persistance
+    async function ensureAllModulesExist() {
+      const rows = modules.map((mod, i) => ({ id: "mod"+i }));
+      await supabase.from('modules').upsert(rows);
+    }
+
     function getStatusLabel(status) {
       return status === "todo" ? "À traiter" : status === "progress" ? "En cours" : "Traité";
     }
@@ -220,48 +253,40 @@
       return status === "todo" ? "progress" : status === "progress" ? "done" : "todo";
     }
 
+    function moduleCardTemplate(i, mod) {
+      const id = "mod" + i;
+      return `
+      <section class="module-card" id="${id}">
+        <div class="module-title">${mod}</div>
+        <label>🎥 Chef opérateur</label>
+        <input type="text" id="${id}_chef" />
+        <label>📍 Lieu</label>
+        <input type="text" id="${id}_lieu" />
+        <label>📅 Date</label>
+        <input type="date" id="${id}_date" />
+        <label>🕒 Tranches horaires (libre)</label>
+        <input type="text" id="${id}_horaires" placeholder="Ex : 08h30-10h, 14h-16h" autocomplete="off" />
+        <label>📝 Ajouter une note</label>
+        <div class="note-entry">
+          <input type="text" id="${id}_author" placeholder="Auteur">
+          <input type="text" id="${id}_text" placeholder="Texte de la note">
+          <button type="button" data-action="add-note" data-id="${id}">Ajouter</button>
+        </div>
+        <div class="filter-line" data-id="${id}">
+          <span>Filtrer :</span>
+          <button type="button" data-filter="all" class="active">Tous</button>
+          <button type="button" data-filter="todo">À traiter</button>
+          <button type="button" data-filter="progress">En cours</button>
+          <button type="button" data-filter="done">Traité</button>
+        </div>
+        <div id="${id}_notes"></div>
+      </section>
+      `;
+    }
+
     function renderModules() {
-      const c = document.getElementById("container");
-      let html = "";
-      modules.forEach((mod, i) => {
-        const id = "mod" + i;
-        html += `
-<details id="${id}">
-  <summary>${mod}</summary>
-  <label>🎥 Chef opérateur</label>
-  <input type="text" id="${id}_chef" />
-
-  <label>📍 Lieu</label>
-  <input type="text" id="${id}_lieu" />
-
-  <label>📅 Date</label>
-  <input type="date" id="${id}_date" />
-
-  <label>🕒 Tranches horaires (édition libre)</label>
-  <input type="text" id="${id}_horaires" placeholder="Ex : 08h30-10h, 14h-16h" autocomplete="off" />
-
-  <hr/>
-
-  <label>📝 Ajouter une note</label>
-  <div class="note-entry">
-    <input type="text" id="${id}_author" placeholder="Auteur">
-    <input type="text" id="${id}_text" placeholder="Texte de la note">
-    <button type="button" data-action="add-note" data-id="${id}">Ajouter</button>
-  </div>
-
-  <div class="filter-line" data-id="${id}">
-    <span>Filtrer :</span>
-    <button type="button" data-filter="all" class="active">Tous</button>
-    <button type="button" data-filter="todo">À traiter</button>
-    <button type="button" data-filter="progress">En cours</button>
-    <button type="button" data-filter="done">Traité</button>
-  </div>
-
-  <div id="${id}_notes"></div>
-</details>`;
-      });
-      c.innerHTML = html;
-
+      const c = document.getElementById("modules-grid");
+      c.innerHTML = modules.map((mod, i) => moduleCardTemplate(i, mod)).join('');
       modules.forEach((_, i) => {
         const id = "mod" + i;
         loadNotes(id);
@@ -285,7 +310,7 @@
       if (t.classList.contains("status")) {
         const block = t.closest(".note-block");
         const noteId = block.querySelector(".delete-note").dataset.noteid;
-        const moduleId = block.closest("details").id;
+        const moduleId = block.closest(".module-card").id;
         const curStatus = block.dataset.status;
         const nextStatus = getNextStatus(curStatus);
         await supabase.from('notes').update({ status: nextStatus }).eq('id', noteId);
@@ -293,7 +318,7 @@
       }
       if (t.classList.contains("delete-note")) {
         const noteId = t.dataset.noteid;
-        const moduleId = t.closest("details").id;
+        const moduleId = t.closest(".module-card").id;
         await deleteNote(noteId, moduleId);
       }
       if (t.matches(".filter-line button")) {
@@ -372,19 +397,17 @@
 
     // SYNCHRO CHAMPS MODULE
     async function loadModule(id) {
-      const { data, error } = await supabase.from('modules').select('*').eq('id', id).maybeSingle();
-      if (!data) return; // pas grave, reste vide
+      const { data } = await supabase.from('modules').select('*').eq('id', id).maybeSingle();
+      if (!data) return;
       document.getElementById(id + "_chef").value = data.chef || "";
       document.getElementById(id + "_lieu").value = data.lieu || "";
       document.getElementById(id + "_date").value = data.date || "";
       document.getElementById(id + "_horaires").value = data.horaires || "";
     }
-
     function flashInput(input) {
       input.classList.add("flash");
       setTimeout(() => input.classList.remove("flash"), 700);
     }
-
     function setupSyncFields(id) {
       ["_chef", "_lieu", "_date", "_horaires"].forEach(suffix => {
         document.getElementById(id + suffix).addEventListener("change", () => {
@@ -393,7 +416,6 @@
         });
       });
     }
-
     async function syncModule(id) {
       const chef = document.getElementById(id + "_chef").value;
       const lieu = document.getElementById(id + "_lieu").value;
@@ -404,8 +426,11 @@
       ]);
     }
 
-    // Initialisation
-    renderModules();
+    // INIT: ensure modules then render UI
+    (async function() {
+      await ensureAllModulesExist();
+      renderModules();
+    })();
   </script>
 </body>
 </html>
