@@ -4,40 +4,184 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tournage – L’Arène</title>
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,600,700,800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { margin: 0; padding: 0; background: #f9fafc; color: #222; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; min-height: 100vh; }
-    header { background: #fff; box-shadow: 0 2px 24px rgba(0,0,0,0.07); padding: 42px 0 24px 0; text-align: center; border-radius: 0 0 36px 36px; }
-    header h1 { margin: 0; font-size: 2.6rem; letter-spacing: 1.2px; font-weight: 700; color: #0071e3; }
-    main { max-width: 900px; margin: 40px auto 0 auto; padding: 0 16px; }
-    details { background: #fff; margin: 2rem 0; border-radius: 30px; padding: 2rem 1.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.06); transition: box-shadow .2s; border: 1px solid #f1f3f6; }
-    details[open] { box-shadow: 0 12px 36px rgba(0,113,227,0.11); }
-    summary { font-size: 1.3em; font-weight: 600; color: #0071e3; cursor: pointer; outline: none; padding: .5rem 0; border-radius: 15px; transition: background .2s; }
-    summary:hover, summary:focus { background: #eaf6ff; }
-    label { display: block; margin: 1.3rem 0 0.3rem; font-weight: 600; color: #555; letter-spacing: .1em; }
-    input[type="text"], input[type="date"], select, textarea { width: 100%; background: #f3f6fa; border: 1px solid #d8e3f1; color: #222; padding: 0.7rem; font-size: 1.1rem; border-radius: 10px; box-sizing: border-box; transition: border .2s; }
-    input:focus, textarea:focus, select:focus { outline: none; border-color: #0071e3; }
-    .note-entry { display: flex; gap: 10px; margin: 1rem 0 0.5rem; flex-wrap: wrap; align-items: center; }
-    .note-entry input { flex: 1; }
-    .note-block { background: #f3f9fd; padding: 0.7rem 1rem; margin: 0.5rem 0; border-radius: 12px; border-left: 5px solid #0071e3; position: relative; box-shadow: 0 2px 12px rgba(0,113,227,0.05); transition: box-shadow .2s; }
-    .note-block .meta { font-size: 0.93em; color: #888; margin-bottom: 4px; font-weight: 500; }
-    .note-block .status { position: absolute; top: 8px; right: 110px; padding: 3px 14px; border-radius: 7px; font-size: 0.85em; font-weight: 600; cursor: pointer; border: none; transition: background .2s; background: #f5f7fa; color: #0071e3; }
-    .note-block .delete-note { position: absolute; top: 8px; right: 12px; background: #e53e3e; color: #fff; border: none; padding: 3px 14px; border-radius: 7px; font-size: 0.85em; font-weight: 600; cursor: pointer; transition: background .2s; }
+    body {
+      background: linear-gradient(120deg, #f9fafc 60%, #e2eafe 100%);
+      color: #1a2746;
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      min-height: 100vh;
+    }
+    header {
+      background: #fff;
+      box-shadow: 0 2px 24px rgba(0,0,0,0.09);
+      padding: 48px 0 28px 0;
+      text-align: center;
+      border-radius: 0 0 36px 36px;
+    }
+    header h1 {
+      font-size: 2.5rem;
+      color: #0071e3;
+      font-weight: 800;
+      letter-spacing: 1.3px;
+      margin: 0;
+    }
+    main {
+      max-width: 1000px;
+      margin: 40px auto 0 auto;
+      padding: 0 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+    details {
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 8px 36px rgba(0, 113, 227, 0.11);
+      transition: box-shadow .22s, transform .22s;
+      border: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      margin-bottom: 1.5em;
+      animation: fadeIn .7s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(18px);}
+      to   { opacity: 1; transform: none;}
+    }
+    details[open] {
+      box-shadow: 0 16px 50px rgba(0,113,227,0.15);
+      transform: translateY(-2px) scale(1.01);
+    }
+    summary {
+      font-size: 1.2em;
+      font-weight: 700;
+      color: #0071e3;
+      cursor: pointer;
+      background: #eaf6ff;
+      padding: 1rem 1.5rem;
+      transition: background .2s;
+      border-bottom: 1px solid #e8eef7;
+      outline: none;
+    }
+    summary:focus, summary:hover {
+      background: #d6e8fa;
+    }
+    label {
+      margin: 1.1rem 0 0.2rem;
+      font-weight: 600;
+      color: #264080;
+      letter-spacing: .09em;
+      display: block;
+    }
+    input[type="text"], input[type="date"], textarea {
+      width: 100%;
+      background: #f7fafd;
+      border: 1px solid #d2e8fd;
+      color: #1a2746;
+      padding: 0.7rem;
+      font-size: 1rem;
+      border-radius: 10px;
+      margin-bottom: 0.5rem;
+      margin-top: 0.10rem;
+      transition: border .2s, box-shadow .2s;
+      box-shadow: 0 1px 2px rgba(0,113,227,0.03);
+      resize: vertical;
+    }
+    input:focus, textarea:focus {
+      border-color: #0071e3;
+      box-shadow: 0 0 0 2px #b3d9fa;
+    }
+    .note-entry {
+      display: flex;
+      gap: 10px;
+      margin: 1.2rem 0 0.4rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .note-entry input, .note-entry button {
+      font-size: 1em;
+    }
+    .note-block {
+      background: #f3f9fd;
+      padding: 0.8rem 1.2rem 0.8rem 1.2rem;
+      margin: 0.7rem 0;
+      border-radius: 15px;
+      border-left: 6px solid #0071e3;
+      position: relative;
+      box-shadow: 0 3px 18px rgba(0,113,227,0.07);
+      transition: box-shadow .2s, background .2s;
+      animation: noteAppear 0.4s;
+    }
+    @keyframes noteAppear {
+      from { opacity: 0; transform: translateY(10px);}
+      to   { opacity: 1; transform: none;}
+    }
+    .note-block .meta {
+      font-size: 0.96em;
+      color: #558;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    .note-block .status, .note-block .delete-note {
+      position: absolute;
+      top: 10px;
+      border-radius: 8px;
+      font-size: 0.93em;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      padding: 4px 15px;
+      transition: background .2s, color .2s;
+    }
+    .note-block .status {
+      right: 110px;
+    }
+    .note-block .delete-note {
+      right: 18px;
+      background: #ee5353;
+      color: #fff;
+      font-size: 0.93em;
+    }
     .note-block[data-status="todo"] .status { background: #ffe6a4; color: #9a7700; }
     .note-block[data-status="progress"] .status { background: #d0e6ff; color: #1769c1; }
     .note-block[data-status="done"] .status { background: #bbf7c2; color: #107c41; }
-    .filter-line { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; }
-    .filter-line button { background: #f3f6fa; color: #0071e3; font-size: 1em; padding: 5px 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background .2s, color .2s; }
-    .filter-line button.active { background: #0071e3; color: #fff; }
-    @media (max-width:600px) {
-      main { padding: 0 2px; }
-      details { padding: 1rem 0.5rem; }
-      header h1 { font-size: 1.2em; }
+    .filter-line {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      align-items: center;
     }
-    button:focus, input:focus { outline: 2px solid #0071e3; }
+    .filter-line button {
+      background: #f3f6fa;
+      color: #0071e3;
+      font-size: 1em;
+      padding: 7px 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background .18s, color .16s;
+      margin-bottom: 0.2em;
+    }
+    .filter-line button.active { background: #0071e3; color: #fff; }
     hr { border: none; border-top: 1px solid #f1f3f6; margin: 2rem 0; }
     footer { text-align: center; color: #aaa; padding: 36px 0 18px 0; font-size: 1rem; margin-top: 60px; }
+    @media (max-width: 680px) {
+      main { padding: 0 2px; }
+      details { padding: 0.5rem 0.2rem; }
+      .note-block { padding: 0.7rem 0.7rem 0.7rem 0.9rem; }
+      header h1 { font-size: 1.3em; }
+    }
+    /* Anim flash sur input modifié */
+    .flash {
+      box-shadow: 0 0 0 3px #ffe561 !important;
+      transition: box-shadow 0.6s;
+    }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header>
@@ -51,12 +195,11 @@
   </footer>
 
   <script>
-    // ------ Supabase ------
+    // ------ SUPABASE SETUP ------
     const SUPABASE_URL = 'https://agrpuquffudxgrgdiqxi.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFncnB1cXVmZnVkeGdyZ2RpcXhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyMjM5NzEsImV4cCI6MjA2NDc5OTk3MX0.aG_ko5Tpyu9QTxMD0e7Mr9HZZex1NvX4WueDu7YtLfs';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ------ Données permanentes ------
     const modules = [
       "Convois",
       "Portraits écrans",
@@ -94,16 +237,8 @@
   <label>📅 Date</label>
   <input type="date" id="${id}_date" />
 
-  <label>⏰ Plages horaires</label>
-  <select id="${id}_timeslot" multiple style="width:100%;min-height:80px;">
-    <option value="08:00-09:00">08:00 - 09:00</option>
-    <option value="09:00-10:00">09:00 - 10:00</option>
-    <option value="10:00-11:00">10:00 - 11:00</option>
-    <option value="11:00-12:00">11:00 - 12:00</option>
-    <option value="13:00-14:00">13:00 - 14:00</option>
-    <option value="14:00-15:00">14:00 - 15:00</option>
-    <option value="15:00-16:00">15:00 - 16:00</option>
-  </select>
+  <label>🕒 Tranches horaires (édition libre)</label>
+  <input type="text" id="${id}_horaires" placeholder="Ex : 08h30-10h, 14h-16h" autocomplete="off" />
 
   <hr/>
 
@@ -130,6 +265,8 @@
       modules.forEach((_, i) => {
         const id = "mod" + i;
         loadNotes(id);
+        loadModule(id);
+        setupSyncFields(id);
       });
 
       c.addEventListener("click", onContainerClick);
@@ -138,6 +275,7 @@
 
     let currentFilters = {};
 
+    // NOTES
     async function onContainerClick(e) {
       const t = e.target;
       if (t.dataset.action === "add-note") {
@@ -230,6 +368,40 @@
       document.querySelectorAll("#" + id + " .note-block").forEach(n => {
         n.style.display = (stat === "all" || n.dataset.status === stat) ? "block" : "none";
       });
+    }
+
+    // SYNCHRO CHAMPS MODULE
+    async function loadModule(id) {
+      const { data, error } = await supabase.from('modules').select('*').eq('id', id).maybeSingle();
+      if (!data) return; // pas grave, reste vide
+      document.getElementById(id + "_chef").value = data.chef || "";
+      document.getElementById(id + "_lieu").value = data.lieu || "";
+      document.getElementById(id + "_date").value = data.date || "";
+      document.getElementById(id + "_horaires").value = data.horaires || "";
+    }
+
+    function flashInput(input) {
+      input.classList.add("flash");
+      setTimeout(() => input.classList.remove("flash"), 700);
+    }
+
+    function setupSyncFields(id) {
+      ["_chef", "_lieu", "_date", "_horaires"].forEach(suffix => {
+        document.getElementById(id + suffix).addEventListener("change", () => {
+          syncModule(id);
+          flashInput(document.getElementById(id + suffix));
+        });
+      });
+    }
+
+    async function syncModule(id) {
+      const chef = document.getElementById(id + "_chef").value;
+      const lieu = document.getElementById(id + "_lieu").value;
+      const date = document.getElementById(id + "_date").value;
+      const horaires = document.getElementById(id + "_horaires").value;
+      await supabase.from('modules').upsert([
+        { id, chef, lieu, date: (date || null), horaires, updated_at: new Date().toISOString() }
+      ]);
     }
 
     // Initialisation
