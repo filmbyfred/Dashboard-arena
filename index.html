@@ -22,8 +22,13 @@
     }
     .note-block .meta { font-size: 0.9em; color: #aaa; margin-bottom: 4px; }
     .note-block .status {
-      position: absolute; top: 6px; right: 6px;
+      position: absolute; top: 6px; right: 80px;
       padding: 2px 8px; border-radius: 4px; font-size: 0.8em;
+      font-weight: bold; cursor: pointer;
+    }
+    .note-block .delete-note {
+      position: absolute; top: 6px; right: 6px;
+      background: #e53e3e; color: #fff; border: none; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;
       font-weight: bold; cursor: pointer;
     }
     .note-block[data-status="todo"] .status { background: #fcb900; color: #000; }
@@ -39,13 +44,24 @@
       padding: 4px 10px; border: none; border-radius: 5px;
     }
     .filter-line button.active { background: #fcb900; color: #000; }
+    .upload-block { margin: 1rem 0; }
+    .file-item { display: flex; align-items: center; margin: 0.3rem 0; gap: 10px; }
+    .file-item a { color:#4fd1c5; }
+    .file-item button { background: #e53e3e; color:#fff; padding: 2px 8px; font-size: 0.8em; border-radius: 4px;}
+    @media (max-width:600px) {
+      details { padding:0.5rem; }
+      h1 { font-size: 1.2em; }
+    }
+    /* Amélioration focus accessibilité */
+    button:focus, input:focus { outline: 2px solid #fcb900; }
   </style>
 </head>
 <body>
 <h1>🎬 Tournage – Règles & Modules additionnels</h1>
 <div id="container"></div>
+
 <script type="module">
-// ------ Optimisé et modulaire ------
+// ------ Données ------
 const modules = [
   "Convois", "Portraits", "Sac de frappe", "Traîneaux", "Vélos",
   "Combat piscine", "Lutte des territoires", "Bains glacés", "Combats éliminatoires"
@@ -92,13 +108,20 @@ function renderModules() {
     <button type="button" data-filter="done">Traité</button>
   </div>
   <div id="${id}_notes"></div>
+  <div class="upload-block">
+    <label>📎 Upload fichiers (images/PDF)</label>
+    <input type="file" id="${id}_files" multiple accept="image/*,.pdf">
+    <div id="${id}_files_list"></div>
+  </div>
 </details>`;
   });
   c.innerHTML = html;
-  modules.forEach((_, i) => loadNotes("mod" + i));
-  // Event delegation for add note
+  modules.forEach((_, i) => {
+    loadNotes("mod" + i);
+    setupFileUpload("mod" + i);
+    renderFiles("mod" + i);
+  });
   c.addEventListener('click', onContainerClick);
-  // Keyboard: allow Enter to add note
   c.addEventListener('keydown', onNoteEntryKeydown);
 }
 
@@ -108,9 +131,18 @@ function onContainerClick(e) {
     addNote(t.dataset.id);
   } else if (t.classList.contains("status")) {
     toggleStatus(t.closest(".note-block"));
+  } else if (t.classList.contains("delete-note")) {
+    const block = t.closest(".note-block");
+    block.remove();
+    saveNotes(block.closest("details").id);
+    filter(block.closest("details").id, currentFilters[block.closest("details").id] || 'all');
   } else if (t.matches('.filter-line button')) {
     const line = t.closest('.filter-line');
     filter(line.dataset.id, t.dataset.filter);
+  } else if (t.classList.contains("delete-file")) {
+    const id = t.dataset.id;
+    const idx = +t.dataset.idx;
+    deleteFile(id, idx);
   }
 }
 
@@ -140,7 +172,8 @@ function addNote(id) {
   div.dataset.status = "todo";
   div.innerHTML = `<div class="meta">${name || "Anonyme"}</div>
     <div>${text}</div>
-    <button type="button" class="status">À traiter</button>`;
+    <button type="button" class="status">À traiter</button>
+    <button type="button" class="delete-note">Supprimer</button>`;
   document.getElementById(id + "_notes").appendChild(div);
   textEl.value = "";
   saveNotes(id); filter(id, currentFilters[id] || 'all');
@@ -165,11 +198,11 @@ function saveNotes(id) {
   }));
   localStorage.setItem(id + "_notes", JSON.stringify(notes));
 }
-
 function loadNotes(id) {
   const data = localStorage.getItem(id + "_notes");
   if (!data) return;
   const area = document.getElementById(id + "_notes");
+  area.innerHTML = "";
   try {
     JSON.parse(data).forEach(n => {
       const div = document.createElement("div");
@@ -177,11 +210,8 @@ function loadNotes(id) {
       div.innerHTML = n.html;
       area.appendChild(div);
     });
-  } catch (e) {
-    // Corrupted data, ignore
-  }
+  } catch (e) {}
 }
-
 function filter(id, stat) {
   currentFilters[id] = stat;
   const all = document.querySelectorAll("#" + id + "_notes .note-block");
@@ -190,6 +220,46 @@ function filter(id, stat) {
   filterButtons.forEach(b => b.classList.remove("active"));
   const btn = [...filterButtons].find(b => b.dataset.filter === stat);
   if (btn) btn.classList.add("active");
+}
+
+// Gestion fichiers
+function setupFileUpload(id) {
+  const input = document.getElementById(`${id}_files`);
+  input.addEventListener('change', function(event) {
+    const files = Array.from(event.target.files);
+    const stored = JSON.parse(localStorage.getItem(id + "_files") || "[]");
+    let left = files.length;
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        stored.push({name: file.name, type: file.type, data: e.target.result});
+        left--;
+        if (left===0) {
+          localStorage.setItem(id + "_files", JSON.stringify(stored));
+          renderFiles(id);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    input.value = "";
+  });
+}
+
+function renderFiles(id) {
+  const files = JSON.parse(localStorage.getItem(id + "_files") || "[]");
+  const el = document.getElementById(id + "_files_list");
+  el.innerHTML = files.map((f, idx) =>
+    `<div class="file-item">
+      <a href="${f.data}" download="${f.name}" target="_blank">${f.name}</a>
+      <button type="button" class="delete-file" data-id="${id}" data-idx="${idx}">Supprimer</button>
+    </div>`
+  ).join("");
+}
+function deleteFile(id, idx) {
+  const files = JSON.parse(localStorage.getItem(id + "_files") || "[]");
+  files.splice(idx, 1);
+  localStorage.setItem(id + "_files", JSON.stringify(files));
+  renderFiles(id);
 }
 </script>
 </body>
