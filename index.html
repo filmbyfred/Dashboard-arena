@@ -164,57 +164,56 @@
   <div id="container"></div>
 
   <script type="module">
-  // ------ Données permanentes ------
-  const modules = [
-    "Convois",
-    "Portraits",
-    "Sac de frappe",
-    "Traîneaux",
-    "Vélos",
-    "Combat piscine",
-    "Lutte des territoires",
-    "Bains glacés",
-    "Combats éliminatoires"
-  ];
+    // ------ Données permanentes ------
+    const modules = [
+      "Convois",
+      "Portraits",
+      "Sac de frappe",
+      "Traîneaux",
+      "Vélos",
+      "Combat piscine",
+      "Lutte des territoires",
+      "Bains glacés",
+      "Combats éliminatoires"
+    ];
 
-  // Chef Op / Lieu prérempli
-  const config = {
-    0: ["Neel Poettinger", ""],
-    1: ["Julien Lascar & Sacha Wiernik", "Portraits écrans: HANGAR FROIDS / Portraits beauties: Ext & Int SILO"],
-    2: ["Julien Lascar", "HANGAR HM10"],
-    3: ["Julien Lascar", "HANGAR HM10"],
-    4: ["Neel Poettinger", "HANGAR HM10"],
-    5: ["Neel Poettinger", ""],
-    6: ["Neel Poettinger", ""],
-    7: ["Julien Lascar", "HANGAR HM10"],
-    8: ["", ""]
-  };
+    // Chef Op / Lieu prérempli (restent readonly)
+    const config = {
+      0: ["Neel Poettinger", ""],   // Convois (laisse vides)
+      1: ["", ""],                  // Portraits (laisse aussi vides)
+      2: ["Julien Lascar", "HANGAR HM10"],
+      3: ["Julien Lascar", "HANGAR HM10"],
+      4: ["Neel Poettinger", "HANGAR HM10"],
+      5: ["Neel Poettinger", ""],
+      6: ["Neel Poettinger", ""],
+      7: ["Julien Lascar", "HANGAR HM10"],
+      8: ["", ""]
+    };
 
-  // Incarnants par module (intervenants)
-  const incumbents = {
-    0: ["Neel Poettinger"],                                     // Convois
-    1: ["Ciryl (Portraits écrans)", "Ciryl & 1 combattante (Portraits beauties)"],
-    2: ["Ciryl"],                                                // Sac de frappe
-    3: ["Ciryl", "1 combattante"],                               // Traîneaux
-    4: ["1 combattant", "1 combattante"],                        // Vélo
-    5: ["2 combattants hommes"],                                 // Combat piscine
-    6: ["4 combattants hommes"],                                 // Lutte des territoires
-    7: ["1 combattante"],                                        // Bains glacés
-    8: []                                                        // Combats éliminatoires (à définir)
-  };
+    // Incarnants par module (intervenants)
+    const incumbents = {
+      0: ["Neel Poettinger"],                                      // Convois
+      1: ["Ciryl (Portraits écrans)", "Ciryl & 1 combattante"],     // Portraits
+      2: ["Ciryl"],                                                 // Sac de frappe
+      3: ["Ciryl", "1 combattante"],                                // Traîneaux
+      4: ["1 combattant", "1 combattante"],                         // Vélo
+      5: ["2 combattants hommes"],                                  // Combat piscine
+      6: ["4 combattants hommes"],                                  // Lutte des territoires
+      7: ["1 combattante"],                                         // Bains glacés
+      8: []                                                         // Combats éliminatoires
+    };
 
-  let currentFilters = {};
+    let currentFilters = {};
 
-  // Génération HTML pour chaque module
-  function renderModules() {
-    const c = document.getElementById("container");
-    let html = "";
-    modules.forEach((mod, i) => {
-      const id = "mod" + i;
-      const chef = config[i][0];
-      const lieu = config[i][1];
-      const inters = incumbents[i] || [];
-      html += `
+    // Génération HTML pour chaque module
+    function renderModules() {
+      const c = document.getElementById("container");
+      let html = "";
+      modules.forEach((mod, i) => {
+        const id = "mod" + i;
+        const [chef, lieu] = config[i];
+        const inters = incumbents[i] || [];
+        html += `
 <details id="${id}">
   <summary>${mod}</summary>
 
@@ -224,8 +223,8 @@
   <label>📍 Lieu</label>
   <input type="text" value="${lieu}" readonly />
 
-  <label>👥 Intervenants</label>
-  <input type="text" value="${inters.join(", ")}" readonly />
+  <label>👥 Incarnants</label>
+  <input type="text" id="${id}_incarnants" value="${inters.join(", ")}" placeholder="Liste des incarnants" />
 
   <hr/>
 
@@ -252,184 +251,88 @@
     <div id="${id}_files_list"></div>
   </div>
 </details>`;
-    });
-    c.innerHTML = html;
+      });
+      c.innerHTML = html;
 
-    // Charger existant + mettre en place fileupload
-    modules.forEach((_, i) => {
-      const id = "mod" + i;
-      loadNotes(id);
-      setupFileUpload(id);
-      renderFiles(id);
-    });
+      // Charger existant + mettre en place fileupload
+      modules.forEach((_, i) => {
+        const id = "mod" + i;
+        loadNotes(id);
+        setupFileUpload(id);
+        renderFiles(id);
+      });
 
-    // Événements par délégation
-    c.addEventListener("click", onContainerClick);
-    c.addEventListener("keydown", onNoteEntryKeydown);
-  }
-
-  // Ajout ou suppression ou état de note ou filtre ou suppression de fichier
-  function onContainerClick(e) {
-    const t = e.target;
-
-    // Ajouter une note
-    if (t.dataset.action === "add-note") {
-      const id = t.dataset.id;
-      addNote(id);
+      // Événements par délégation
+      c.addEventListener("click", onContainerClick);
+      c.addEventListener("keydown", onNoteEntryKeydown);
     }
 
-    // Changer de statut
-    if (t.classList.contains("status")) {
-      toggleStatus(t.closest(".note-block"));
+    // Ajout ou suppression ou état de note ou filtre ou suppression de fichier
+    function onContainerClick(e) {
+      const t = e.target;
+
+      // Ajouter une note
+      if (t.dataset.action === "add-note") {
+        const id = t.dataset.id;
+        addNote(id);
+      }
+
+      // Changer de statut
+      if (t.classList.contains("status")) {
+        toggleStatus(t.closest(".note-block"));
+      }
+
+      // Supprimer une note
+      if (t.classList.contains("delete-note")) {
+        const block = t.closest(".note-block");
+        const parent = block.closest("details").id;
+        block.remove();
+        saveNotes(parent);
+        filter(parent, currentFilters[parent] || "all");
+      }
+
+      // Filtrer
+      if (t.matches(".filter-line button")) {
+        const line = t.closest(".filter-line");
+        filter(line.dataset.id, t.dataset.filter);
+      }
+
+      // Supprimer un fichier uploadé
+      if (t.classList.contains("delete-file")) {
+        deleteFile(t.dataset.id, +t.dataset.idx);
+      }
     }
 
-    // Supprimer une note
-    if (t.classList.contains("delete-note")) {
-      const block = t.closest(".note-block");
-      const parent = block.closest("details").id;
-      block.remove();
-      saveNotes(parent);
-      filter(parent, currentFilters[parent] || "all");
+    // Touche “Entrée” pour ajouter note
+    function onNoteEntryKeydown(e) {
+      if (e.key === "Enter" && e.target.matches("input[id$='_text']")) {
+        const id = e.target.id.replace("_text", "");
+        addNote(id);
+      }
     }
 
-    // Filtrer
-    if (t.matches(".filter-line button")) {
-      const line = t.closest(".filter-line");
-      filter(line.dataset.id, t.dataset.filter);
-    }
+    // Ajout de note
+    function addNote(id) {
+      const nameEl = document.getElementById(id + "_author");
+      const textEl = document.getElementById(id + "_text");
+      const name = nameEl.value.trim();
+      const text = textEl.value.trim();
+      if (!text) return;
 
-    // Supprimer un fichier uploadé
-    if (t.classList.contains("delete-file")) {
-      deleteFile(t.dataset.id, +t.dataset.idx);
-    }
-  }
-
-  // Touche « Entrée » pour ajouter note
-  function onNoteEntryKeydown(e) {
-    if (e.key === "Enter" && e.target.matches("input[id$='_text']")) {
-      const id = e.target.id.replace("_text", "");
-      addNote(id);
-    }
-  }
-
-  // Ajout de note
-  function addNote(id) {
-    const nameEl = document.getElementById(id + "_author");
-    const textEl = document.getElementById(id + "_text");
-    const name = nameEl.value.trim();
-    const text = textEl.value.trim();
-    if (!text) return;
-
-    const div = document.createElement("div");
-    div.className = "note-block";
-    div.dataset.status = "todo";
-    div.innerHTML = `
-      <div class="meta">${name || "Anonyme"}</div>
-      <div>${text}</div>
-      <button type="button" class="status">À traiter</button>
-      <button type="button" class="delete-note">Supprimer</button>
-    `;
-
-    document.getElementById(id + "_notes").appendChild(div);
-    nameEl.value = "";
-    textEl.value = "";
-    saveNotes(id);
-    filter(id, currentFilters[id] || "all");
-  }
-
-  // Changer le statut en cyclant
-  function toggleStatus(el) {
-    const states = ["todo", "progress", "done"];
-    const labels = ["À traiter", "En cours", "Traité"];
-    let cur = states.indexOf(el.dataset.status || "todo");
-    let next = (cur + 1) % 3;
-    el.dataset.status = states[next];
-    el.querySelector(".status").innerText = labels[next];
-    const id = el.closest("details").id;
-    saveNotes(id);
-    filter(id, currentFilters[id] || "all");
-  }
-
-  // Sauvegarder notes
-  function saveNotes(id) {
-    const blocks = [...document.querySelectorAll("#" + id + "_notes .note-block")];
-    const notes = blocks.map(div => ({
-      html: div.innerHTML,
-      status: div.dataset.status
-    }));
-    localStorage.setItem(id + "_notes", JSON.stringify(notes));
-  }
-
-  // Charger notes existantes
-  function loadNotes(id) {
-    const data = localStorage.getItem(id + "_notes");
-    if (!data) return;
-    const area = document.getElementById(id + "_notes");
-    area.innerHTML = "";
-    JSON.parse(data).forEach(n => {
       const div = document.createElement("div");
       div.className = "note-block";
-      div.dataset.status = n.status;
-      div.innerHTML = n.html;
-      area.appendChild(div);
-    });
-  }
+      div.dataset.status = "todo";
+      div.innerHTML = `
+        <div class="meta">${name || "Anonyme"}</div>
+        <div>${text}</div>
+        <button type="button" class="status">À traiter</button>
+        <button type="button" class="delete-note">Supprimer</button>
+      `;
 
-  // Filtrer notes
-  function filter(id, stat) {
-    currentFilters[id] = stat;
-    const buttons = document.querySelectorAll("#" + id + " .filter-line button");
-    buttons.forEach(b => b.classList.remove("active"));
-    document.querySelector(`#${id} .filter-line button[data-filter="${stat}"]`).classList.add("active");
-    document.querySelectorAll("#" + id + " .note-block").forEach(n => {
-      n.style.display = stat === "all" || n.dataset.status === stat ? "block" : "none";
-    });
-  }
+      document.getElementById(id + "_notes").appendChild(div);
+      nameEl.value = "";
+      textEl.value = "";
+      saveNotes(id);
+      filter(id, currentFilters[id] || "all
 
-  // Gestion des uploads
-  function setupFileUpload(id) {
-    const input = document.getElementById(id + "_files");
-    input.addEventListener("change", function(event) {
-      const files = Array.from(event.target.files);
-      const stored = JSON.parse(localStorage.getItem(id + "_files") || "[]");
-      let left = files.length;
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          stored.push({ name: file.name, type: file.type, data: e.target.result });
-          left--;
-          if (left === 0) {
-            localStorage.setItem(id + "_files", JSON.stringify(stored));
-            renderFiles(id);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-      input.value = "";
-    });
-  }
-
-  function renderFiles(id) {
-    const files = JSON.parse(localStorage.getItem(id + "_files") || "[]");
-    const el = document.getElementById(id + "_files_list");
-    el.innerHTML = files.map((f, idx) =>
-      `<div class="file-item">
-         <a href="${f.data}" download="${f.name}" target="_blank">${f.name}</a>
-         <button type="button" class="delete-file" data-id="${id}" data-idx="${idx}">Supprimer</button>
-       </div>`
-    ).join("");
-  }
-
-  function deleteFile(id, idx) {
-    const files = JSON.parse(localStorage.getItem(id + "_files") || "[]");
-    files.splice(idx, 1);
-    localStorage.setItem(id + "_files", JSON.stringify(files));
-    renderFiles(id);
-  }
-
-  // Initialisation à l’ouverture
-  renderModules();
-  </script>
-</body>
-</html>
 
